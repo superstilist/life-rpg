@@ -3,6 +3,13 @@ from django.views.decorators.cache import never_cache
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseNotAllowed
 from .models import Character, InventoryItem, LogEntry
+from .world_db import (
+    get_character_from_session,
+    create_world_character,
+    get_all_hall_of_fame,
+    get_all_graveyard,
+    ensure_world_database,
+)
 from .event_system import (
     seed_default_items,
     generate_random_fantasy_character,
@@ -29,14 +36,10 @@ import json
 
 @never_cache
 def index_view(request):
-    """Landing page: random fantasy birth generator & Hall of Fame."""
+    """Landing page: random fantasy birth generator & Hall of Fame across world databases."""
     seed_default_items()
-    hall_of_fame = Character.objects.filter(is_alive=False).order_by('-score')[:5]
-
-    active_character = None
-    char_id = request.session.get('character_id')
-    if char_id:
-        active_character = Character.objects.filter(id=char_id).first()
+    hall_of_fame = get_all_hall_of_fame(limit=5)
+    active_character, _ = get_character_from_session(request)
 
     from .plot_generator import WORLD_PRESETS, DIFFICULTIES
     return render(request, 'game/index.html', {
@@ -48,7 +51,7 @@ def index_view(request):
 
 
 def start_game_view(request):
-    """Generates run character starting at Age 0 with custom world, seed, and vector plot."""
+    """Generates run character starting at Age 0 inside the dedicated (world_id).sqlite3 database."""
     if request.method == 'POST':
         import random
         from .plot_generator import WORLD_PRESETS, DIFFICULTIES
@@ -57,7 +60,7 @@ def start_game_view(request):
         world_id = request.POST.get('world_id', 'fantasy').strip()
         if world_id not in WORLD_PRESETS:
             world_id = 'fantasy'
-        
+
         difficulty = request.POST.get('difficulty', 'normal').strip()
         if difficulty not in DIFFICULTIES:
             difficulty = 'normal'
@@ -71,64 +74,19 @@ def start_game_view(request):
             except ValueError:
                 seed_val = abs(hash(seed_raw)) % 1000000
 
-        # Generate base fantasy character
-        character = generate_random_fantasy_character()
-
-        world_info = WORLD_PRESETS[world_id]
-        if custom_name:
-            character.name = custom_name
-
-        # Align location with world starting locations
-        starting_locs = world_info.get("locations", ["Невідомий край"])
-        world_rng = random.Random(seed_val)
-        character.current_location = world_rng.choice(starting_locs)
-
-        # Initialize vector plot story state
-        initial_vector = {
-            "chaos_order": 0.0,
-            "light_shadow": 0.0,
-            "aggression_diplomacy": 0.0,
-            "mystery_reason": 0.0
-        }
-
-        # Pick race from chosen world
-        world_races = world_info.get("races", [])
-        if world_races:
-            character.race = world_rng.choice(world_races)
-
-        # Apply difficulty adjustments
-        diff_info = DIFFICULTIES.get(difficulty, {})
-        hp_mult = diff_info.get("hp_mult", 1.0)
-        gold_mult = diff_info.get("gold_mult", 1.0)
-        if difficulty == 'story':
-            hp_mult, gold_mult = 1.3, 1.5
-        elif difficulty == 'hardcore':
-            hp_mult, gold_mult = 0.8, 0.7
-
-        character.max_hp = int(character.max_hp * hp_mult)
-        character.current_hp = character.max_hp
-        character.gold = int(character.gold * gold_mult)
-
-        # Story flags setup
-        if not isinstance(character.story_flags, dict):
-            character.story_flags = {}
-
-        character.story_flags.update({
-            "world_id": world_id,
-            "world_name": world_info["name"],
-            "seed": seed_val,
-            "difficulty": difficulty,
-            "difficulty_name": diff_info.get("name", "Класична сага"),
-            "vector_plot_enabled": True,
-            "plot_vector": initial_vector,
-            "current_act": 1,
-            "completed_acts": [],
-            "story_interlude_mode": False
-        })
-        character.save()
+        # Create character directly in the dedicated world database
+        character, db_alias = create_world_character(
+            world_id=world_id,
+            custom_name=custom_name,
+            seed_val=seed_val,
+            difficulty=difficulty
+        )
 
         request.session['character_id'] = character.id
-        messages.success(request, f"Ви розпочали шлях у світі {world_info['name']} як {character.name} (Зерно: {seed_val})!")
+        request.session['world_id'] = world_id
+
+        world_name = character.story_flags.get('world_name', world_id)
+        messages.success(request, f"Ви розпочали шлях у світі {world_name} ({world_id}.sqlite3) як {character.name} (Зерно: {seed_val})!")
         return redirect('game:play')
 
     return redirect('game:index')
@@ -137,17 +95,15 @@ def start_game_view(request):
 @never_cache
 def play_view(request):
     """Main fantasy Visual Novel RPG dashboard."""
-    char_id = request.session.get('character_id')
-    if not char_id:
+    character, db_alias = get_character_from_session(request)
+    if not character:
         return redirect('game:index')
-
-    character = get_object_or_404(Character, id=char_id)
 
     if not character.is_alive:
         messages.warning(request, f"{character.name} відійшов у вічність.")
         return redirect('game:graveyard')
 
-    relics = InventoryItem.objects.filter(character=character).select_related('item')
+    relics = character.inventory.select_related('item')
     chronicle_logs = character.logs.all().order_by('-id')
     latest_story = chronicle_logs.first()
     active_event = request.session.get('active_event')
@@ -173,11 +129,9 @@ def play_view(request):
 
 def perform_action_view(request):
     """Novel-driven actions only: story advancement, events, items."""
-    char_id = request.session.get('character_id')
-    if not char_id:
+    character, db_alias = get_character_from_session(request)
+    if not character:
         return redirect('game:index')
-
-    character = get_object_or_404(Character, id=char_id)
     if not character.is_alive:
         return redirect('game:graveyard')
 
@@ -234,7 +188,9 @@ def perform_action_view(request):
 
     elif action == 'use_item':
         inv_id = request.POST.get('inventory_id')
-        inv_item = get_object_or_404(InventoryItem, id=inv_id, character=character)
+        inv_item = character.inventory.filter(id=inv_id).first()
+        if not inv_item:
+            inv_item = get_object_or_404(InventoryItem, id=inv_id)
         item = inv_item.item
 
         if item.item_type == 'POTION':
@@ -247,8 +203,7 @@ def perform_action_view(request):
 
             msg = f"🧪 Випито зілля: {item.name}! (+{item.hp_bonus} ОЗ, +{item.mana_bonus} Мана)"
             messages.success(request, msg)
-            LogEntry.objects.create(
-                character=character,
+            character.logs.create(
                 age=character.age,
                 turn=character.turns,
                 title=f"Вжито {item.name}",
@@ -269,11 +224,9 @@ def advance_narrator_phase_view(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    char_id = request.session.get('character_id')
-    if not char_id:
+    character, db_alias = get_character_from_session(request)
+    if not character:
         return redirect('game:index')
-
-    character = get_object_or_404(Character, id=char_id)
     if not character.is_alive:
         return redirect('game:graveyard')
 
@@ -305,11 +258,9 @@ def skip_narrator_phase_view(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    char_id = request.session.get('character_id')
-    if not char_id:
+    character, db_alias = get_character_from_session(request)
+    if not character:
         return redirect('game:index')
-
-    character = get_object_or_404(Character, id=char_id)
     if not character.is_alive:
         return redirect('game:graveyard')
 
@@ -343,11 +294,9 @@ def resolve_story_choice_view(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    char_id = request.session.get('character_id')
-    if not char_id:
+    character, db_alias = get_character_from_session(request)
+    if not character:
         return redirect('game:index')
-
-    character = get_object_or_404(Character, id=char_id)
     if not character.is_alive:
         return redirect('game:graveyard')
 
@@ -412,11 +361,9 @@ def interlude_action_view(request):
     if request.method != 'POST':
         return HttpResponseNotAllowed(['POST'])
 
-    char_id = request.session.get('character_id')
-    if not char_id:
+    character, db_alias = get_character_from_session(request)
+    if not character:
         return redirect('game:index')
-
-    character = get_object_or_404(Character, id=char_id)
     if not character.is_alive:
         return redirect('game:graveyard')
 
@@ -451,35 +398,31 @@ def interlude_action_view(request):
 
 
 def chronicle_view(request):
-    char_id = request.session.get('character_id')
-    if not char_id:
+    character, db_alias = get_character_from_session(request)
+    if not character:
         return redirect('game:index')
 
-    character = get_object_or_404(Character, id=char_id)
     logs = character.logs.all().order_by('id')
     return render(request, 'game/chronicle.html', {'character': character, 'logs': logs})
 
 
 def graveyard_view(request):
-    deceased = Character.objects.filter(is_alive=False).order_by('-score')
-    living = Character.objects.filter(is_alive=True).order_by('-score')
+    deceased, living = get_all_graveyard()
     return render(request, 'game/graveyard.html', {'deceased': deceased, 'living': living})
 
 
 def retire_view(request):
-    char_id = request.session.get('character_id')
-    if not char_id:
+    character, db_alias = get_character_from_session(request)
+    if not character:
         return redirect('game:index')
 
-    character = get_object_or_404(Character, id=char_id)
     if character.is_alive:
         character.is_alive = False
         character.cause_of_death = f"Вознісся до легенд у віці {character.age} років, осівши як шанований старійшина."
         character.score = character.calculate_score()
         character.save()
 
-        LogEntry.objects.create(
-            character=character,
+        character.logs.create(
             age=character.age,
             turn=character.turns,
             title="Легендарне вознесіння",

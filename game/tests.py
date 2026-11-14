@@ -5,6 +5,7 @@ import json
 
 
 class NovelEngineControlFlowTestCase(TestCase):
+    databases = '__all__'
     def setUp(self):
         self.client = Client()
         self.character = Character.objects.create(
@@ -197,6 +198,7 @@ from django.urls import reverse
 from game.models import Character
 
 class RunSetupTestCase(TestCase):
+    databases = '__all__'
     def test_run_setup_with_world_and_seed(self):
         client = Client()
         post_data = {
@@ -207,7 +209,8 @@ class RunSetupTestCase(TestCase):
         }
         resp = client.post(reverse('game:start_game'), post_data, follow=True)
         self.assertEqual(resp.status_code, 200)
-        char = Character.objects.first()
+        # The character is saved in its dedicated world database (cosmic_scifi.sqlite3)
+        char = Character.objects.using('cosmic_scifi').first()
         self.assertIsNotNone(char)
         self.assertEqual(char.name, 'Ворн')
         self.assertEqual(char.story_flags.get('world_id'), 'cosmic_scifi')
@@ -220,3 +223,42 @@ class RunSetupTestCase(TestCase):
         self.assertEqual(play_resp.status_code, 200)
         content = play_resp.content.decode('utf-8')
         self.assertIn('Ворн', content)
+from django.test import TestCase, Client
+from django.urls import reverse
+from game.models import Character, Item, InventoryItem, LogEntry
+from game.world_db import KNOWN_WORLDS
+
+class MultiWorldDatabasesTestCase(TestCase):
+    databases = '__all__'
+
+    def test_each_world_lives_in_its_own_sqlite_db(self):
+        client = Client()
+        for world_id in KNOWN_WORLDS:
+            post_data = {
+                'name': f'Герой_{world_id}',
+                'world_id': world_id,
+                'difficulty': 'normal',
+                'seed': '999111'
+            }
+            resp = client.post(reverse('game:start_game'), post_data, follow=True)
+            self.assertEqual(resp.status_code, 200)
+
+            # Check that character exists in world database
+            char = Character.objects.using(world_id).filter(name=f'Герой_{world_id}').first()
+            self.assertIsNotNone(char, f"Character should exist in {world_id} database")
+            self.assertEqual(char._state.db, world_id)
+
+            # Check that default db does not have this character
+            default_char = Character.objects.using('default').filter(name=f'Герой_{world_id}').first()
+            self.assertIsNone(default_char, f"Character must not leak into default db")
+
+            # Check play view loads character from its world db
+            play_resp = client.get(reverse('game:play'))
+            self.assertEqual(play_resp.status_code, 200)
+            self.assertIn(f'Герой_{world_id}', play_resp.content.decode('utf-8'))
+
+            # Advance novel phase in this world
+            adv_resp = client.post(reverse('game:novel_advance'))
+            self.assertEqual(adv_resp.status_code, 302)
+            char.refresh_from_db()
+            self.assertEqual(char.story_phase, 1)

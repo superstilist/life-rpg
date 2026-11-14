@@ -70,12 +70,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'liferpg.wsgi.application'
 
 # Database
+WORLD_DATABASES = [
+    'fantasy',
+    'dark_gothic',
+    'cosmic_scifi',
+    'steampunk_abyss',
+]
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+
+for w in WORLD_DATABASES:
+    DATABASES[w] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / f"{w}.sqlite3",
+    }
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
