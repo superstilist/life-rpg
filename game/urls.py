@@ -12,6 +12,7 @@ urlpatterns = [
     path('novel/skip/', views.skip_narrator_phase_view, name='novel_skip'),
     path('novel/choice/', views.resolve_story_choice_view, name='novel_choice'),
     path('novel/interlude/', views.interlude_action_view, name='novel_interlude'),
+    path('npc/action/', views.npc_action_view, name='npc_action'),
     path('chronicle/', views.chronicle_view, name='chronicle'),
     path('graveyard/', views.graveyard_view, name='graveyard'),
     path('retire/', views.retire_view, name='retire'),

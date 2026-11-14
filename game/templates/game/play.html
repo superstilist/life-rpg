@@ -274,7 +274,114 @@
                 {% endif %}
             </div>
 
-            <!-- 2. Спорядження та Зілля -->
+            <!-- 2. Жителі локації: процедурна пісочниця NPC -->
+            <div class="sidebar-box npc-sandbox-box frameless-box">
+                <div class="box-header">
+                    <span class="box-title">👥 Жителі краю</span>
+                    <span class="box-count">({{ location_npcs|length }})</span>
+                </div>
+
+                <div class="npc-stream">
+                    {% for npc in location_npcs %}
+                        <details class="npc-card" data-npc="{{ npc.id }}">
+                            <summary class="npc-card-head">
+                                <span class="npc-name">{{ npc.name }}</span>
+                                <span class="npc-role">{{ npc.role_title }}</span>
+                                <span class="npc-rel rel-{{ npc.relationship }}">{{ npc.get_relationship_display }}</span>
+                            </summary>
+                            <div class="npc-card-body">
+                                <div class="npc-meta-row">
+                                    <span class="npc-temper">Темперамент: {{ npc.temperament }}</span>
+                                    <span class="npc-age">{{ npc.age }} р.</span>
+                                </div>
+                                {% if npc.appearance %}
+                                    <div class="npc-appearance">{{ npc.appearance|join:" · " }}</div>
+                                {% endif %}
+                                <div class="npc-quote">“{{ npc.quote|default_if_none:'' }}</div>
+                                <div class="npc-stats-row">
+                                    <span title="Повага">П {{ npc.respect }}</span>
+                                    <span title="Симпатія">С {{ npc.affection }}</span>
+                                    <span title="Страх">Т {{ npc.fear }}</span>
+                                </div>
+
+                                <div class="npc-actions-grid">
+                                    <!-- Жести -->
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="gesture">
+                                        <input type="hidden" name="kind" value="bow">
+                                        <button type="submit" class="npc-btn gesture-btn" title="Шанобливий уклін">[уклін]</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="gesture">
+                                        <input type="hidden" name="kind" value="handshake">
+                                        <button type="submit" class="npc-btn gesture-btn" title="Міцне рукостискання">[рука]</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="gesture">
+                                        <input type="hidden" name="kind" value="threaten">
+                                        <button type="submit" class="npc-btn gesture-btn" title="Покласти руку на ефес">[загроза]</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="gesture">
+                                        <input type="hidden" name="kind" value="insult">
+                                        <button type="submit" class="npc-btn gesture-btn" title="Зневажливий жест">[зневага]</button>
+                                    </form>
+
+                                    <!-- Романтика -->
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="romance">
+                                        <input type="hidden" name="kind" value="compliment">
+                                        <button type="submit" class="npc-btn romance-btn" title="Комплімент">[комплімент]</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="romance">
+                                        <input type="hidden" name="kind" value="dine_together">
+                                        <button type="submit" class="npc-btn romance-btn" title="Спільна вечеря">[вечеря]</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="romance">
+                                        <input type="hidden" name="kind" value="confess_love">
+                                        <button type="submit" class="npc-btn romance-btn" title="Зізнання в коханні">[зізнання]</button>
+                                    </form>
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="romance">
+                                        <input type="hidden" name="kind" value="propose_marriage">
+                                        <button type="submit" class="npc-btn romance-btn" title="Запропонувати шлюб">[шлюб]</button>
+                                    </form>
+
+                                    <!-- Вбивство -->
+                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form npc-kill-form" onsubmit="return confirm('Ви впевнені, що хочете вбити {{ npc.name }}? Це назавжди змінить вашу легенду.');">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                        <input type="hidden" name="action_type" value="kill">
+                                        <button type="submit" class="npc-btn kill-btn" title="Атакувати й вбити">[вбити]</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </details>
+                    {% empty %}
+                        <div class="empty-stream-msg">У цій локації немає жителів. Мандрівні душі з'являться з часом.</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- 3. Спорядження та Зілля -->
             <div class="sidebar-box inventory-box frameless-box">
                 <div class="box-header">
                     <span class="box-title">🎒 Торбина спорядження</span>

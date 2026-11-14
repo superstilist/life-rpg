@@ -10,6 +10,14 @@ from .world_db import (
     get_all_graveyard,
     ensure_world_database,
 )
+from .npc_sandbox import (
+    WorldNPC,
+    spawn_npcs_for_location,
+    process_gesture,
+    process_romance,
+    process_npc_kill,
+    npc_speak,
+)
 from .event_system import (
     seed_default_items,
     generate_random_fantasy_character,
@@ -117,6 +125,15 @@ def play_view(request):
     novel_state['choices'] = enrich_choices(novel_state.get('choices', []))
     novel_state['interlude_options'] = enrich_interludes(novel_state.get('interlude_options', []))
 
+    # --- Жителі поточної локації (процедурна пісочниця NPC) ---
+    world_id = character.story_flags.get('world_id') if isinstance(character.story_flags, dict) else None
+    location_npcs = []
+    if world_id:
+        location_npcs = spawn_npcs_for_location(world_id, character.current_location, character, count=4)
+        location_npcs = [n for n in location_npcs if n.is_alive][:4]
+        for npc in location_npcs:
+            npc.quote = npc_speak(npc, '', character.name)
+
     return render(request, 'game/play.html', {
         'character': character,
         'relics': relics,
@@ -124,6 +141,7 @@ def play_view(request):
         'latest_story': latest_story,
         'active_event': active_event,
         'novel_state': novel_state,
+        'location_npcs': location_npcs,
     })
 
 
@@ -393,6 +411,54 @@ def interlude_action_view(request):
         if is_json:
             return JsonResponse({'status': 'error', 'message': res.get('message')}, status=400)
         messages.warning(request, res.get('message', 'Не вдалося виконати інтерлюдію.'))
+
+    return redirect('game:play')
+
+
+def npc_action_view(request):
+    """
+    NPC Sandbox: жести, романтика, вбивство будь-якого процедурного жителя локації.
+    POST: npc_id, action (gesture|romance|kill), kind (bow|handshake|threaten|...)
+    """
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    character, db_alias = get_character_from_session(request)
+    if not character:
+        return redirect('game:index')
+
+    npc_id = request.POST.get('npc_id')
+    action_type = request.POST.get('action_type', 'gesture')
+    kind = request.POST.get('kind', 'bow')
+
+    npc = WorldNPC.objects.using(db_alias).filter(id=npc_id).first()
+    if not npc:
+        messages.warning(request, "Цей житель вже никуди не зникне з ваших очей.")
+        return redirect('game:play')
+
+    result = {'success': False, 'message': 'Невідома дія.'}
+
+    if action_type == 'gesture':
+        result = process_gesture(character, npc, kind)
+    elif action_type == 'romance':
+        result = process_romance(character, npc, kind)
+    elif action_type == 'kill':
+        result = process_npc_kill(character, npc)
+    else:
+        result = {'success': False, 'message': 'Така дія тут неможлива.'}
+
+    character.logs.create(
+        age=character.age,
+        turn=character.turns,
+        title=f"Взаємодія: {npc.name}",
+        text=result.get('message', ''),
+        log_type='event',
+    )
+
+    if result.get('success'):
+        messages.success(request, result.get('message'))
+    else:
+        messages.warning(request, result.get('message'))
 
     return redirect('game:play')
 

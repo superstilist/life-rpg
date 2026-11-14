@@ -520,3 +520,65 @@ class LogEntry(models.Model):
 
     def __str__(self):
         return f"[Year {self.age}] {self.title}"
+
+
+class WorldNPC(models.Model):
+    """Процедурний житель світу, що живе у базі даних світу (world_id).sqlite3."""
+    RELATIONSHIPS = [
+        ('stranger', 'Незнайомець'),
+        ('acquaintance', 'Знайомий'),
+        ('friend', 'Друг'),
+        ('confidant', 'Довірена Особа'),
+        ('lover', 'Кохання'),
+        ('spouse', 'Дружина / Чоловік'),
+        ('rival', 'Суперник'),
+        ('nemesis', 'Заклятий Ворог'),
+        ('deceased', 'Померлий'),
+    ]
+    TEMPERAMENTS = [
+        'noble', 'cunning', 'hotheaded', 'melancholic',
+        'romantic', 'greedy', 'fanatic', 'timid'
+    ]
+    ROLE_ARCHETYPES = [
+        'villager', 'merchant', 'guard', 'hermit', 'artisan', 'healer',
+        'mystic', 'scoundrel', 'noble', 'wanderer', 'outcast',
+        'beast_tamer', 'priest'
+    ]
+
+    name = models.CharField(max_length=100)
+    race = models.CharField(max_length=50, default='Людина')
+    role_title = models.CharField(max_length=100, default='Місцевий житель')
+    temperament = models.CharField(max_length=20, default='noble')
+    gender = models.CharField(max_length=10, default='M')
+
+    location = models.CharField(max_length=150)
+    world_id = models.CharField(max_length=64)
+    seed_val = models.IntegerField(default=0)
+
+    affection = models.IntegerField(default=0)
+    respect = models.IntegerField(default=20)
+    fear = models.IntegerField(default=0)
+    trust = models.IntegerField(default=10)
+
+    relationship = models.CharField(max_length=20, choices=RELATIONSHIPS, default='stranger')
+    is_alive = models.BooleanField(default=True)
+
+    gold = models.IntegerField(default=5)
+    strength = models.IntegerField(default=5)
+    age = models.IntegerField(default=25)
+
+    appearance = models.JSONField(default=list)
+    dialogue_style = models.CharField(max_length=50, default='formal')
+
+    memory_log = models.JSONField(default=list)
+    first_met_at_turn = models.IntegerField(default=0)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['world_id', 'location']),
+            models.Index(fields=['world_id', 'is_alive']),
+        ]
+
+    def __str__(self):
+        status = "Живий" if self.is_alive else "Помер"
+        return f"{self.name} ({self.role_title}, {self.temperament}) - {status}"

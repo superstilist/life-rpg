@@ -1315,6 +1315,23 @@ def resolve_novel_choice(character, act_id: int, choice_index_or_id: Any) -> Dic
 
     result_text = choice.get("success_msg", "") if success else choice.get("fail_msg", "")
 
+    # Вплив супутникового NPC на наслідки вибору (рекрут / залякування)
+    npc_recruit = choice.get("npc_recruit")
+    npc_threaten = choice.get("npc_threaten")
+    story_state = character.get_story_state()
+    if npc_recruit or npc_threaten:
+        npcs = story_state.setdefault("bound_npcs", [])
+        npc_name = act.get("scene_npc", {}).get("name", "Незнайомець")
+        npcs.append({
+            "name": npc_name,
+            "mode": "ally" if npc_recruit else "hostage",
+            "act": act_id,
+        })
+        character.story_flags["bound_npcs"] = npcs
+        if npc_recruit:
+            character.companion = npc_name
+        story_state["bound_npcs"] = npcs
+
     # Створюємо запис у Хроніці героя
     from .models import LogEntry
     LogEntry.objects.create(

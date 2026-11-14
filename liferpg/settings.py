@@ -75,6 +75,7 @@ WORLD_DATABASES = [
     'dark_gothic',
     'cosmic_scifi',
     'steampunk_abyss',
+    'neon_arcana_heartfire',
 ]
 
 DATABASES = {

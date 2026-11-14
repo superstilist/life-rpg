@@ -262,3 +262,88 @@ class MultiWorldDatabasesTestCase(TestCase):
             self.assertEqual(adv_resp.status_code, 302)
             char.refresh_from_db()
             self.assertEqual(char.story_phase, 1)
+
+
+class NPCSandboxTestCase(TestCase):
+    """Перевірка процедурної пісочниці NPC: жести, романтика, вбивство."""
+    databases = '__all__'
+
+    def setUp(self):
+        self.client = Client()
+        resp = self.client.post(reverse('game:start_game'), {
+            'name': 'Пісочник',
+            'world_id': 'fantasy',
+            'difficulty': 'normal',
+            'seed': '777',
+        }, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        self.char = Character.objects.using('fantasy').first()
+        self.assertIsNotNone(self.char)
+
+    def test_npcs_spawn_for_location(self):
+        from game.npc_sandbox import spawn_npcs_for_location, WorldNPC
+        npcs = spawn_npcs_for_location('fantasy', self.char.current_location, self.char, count=4)
+        self.assertGreaterEqual(len(npcs), 1)
+        names = [n.name for n in npcs]
+        self.assertEqual(len(names), len(set(names)), "Імена NPC мають бути унікальними")
+        self.assertTrue(all(n.is_alive for n in npcs))
+
+    def test_npc_panel_renders(self):
+        resp = self.client.get(reverse('game:play'))
+        self.assertEqual(resp.status_code, 200)
+        html = resp.content.decode('utf-8')
+        self.assertIn('Жителі краю', html)
+        self.assertIn('вбити', html)
+
+    def test_gesture_updates_respect(self):
+        from game.npc_sandbox import spawn_npcs_for_location
+        npc = spawn_npcs_for_location('fantasy', self.char.current_location, self.char, count=1)[0]
+        before = npc.respect
+        resp = self.client.post(reverse('game:npc_action'), {
+            'npc_id': npc.id,
+            'action_type': 'gesture',
+            'kind': 'bow',
+        })
+        self.assertEqual(resp.status_code, 302)
+        npc.refresh_from_db()
+        self.assertGreaterEqual(npc.respect, before)
+
+    def test_kill_npc_marks_deceased(self):
+        from game.npc_sandbox import spawn_npcs_for_location, WorldNPC
+        npc = spawn_npcs_for_location('fantasy', self.char.current_location, self.char, count=1)[0]
+        # Знижуємо силу NPC та піднімаємо силу героя, щоб гарантувати вбивство
+        npc.strength = 0
+        npc.save(using='fantasy')
+        self.char.strength = 30
+        self.char.luck = 30
+        self.char.save(using='fantasy')
+
+        killed = False
+        for _ in range(5):
+            resp = self.client.post(reverse('game:npc_action'), {
+                'npc_id': npc.id,
+                'action_type': 'kill',
+            })
+            self.assertEqual(resp.status_code, 302)
+            npc.refresh_from_db()
+            if not npc.is_alive:
+                killed = True
+                break
+        self.assertTrue(killed, "Гравець має мати можливість вбити NPC")
+        self.assertEqual(npc.relationship, 'deceased')
+
+    def test_romance_can_become_spouse(self):
+        from game.npc_sandbox import spawn_npcs_for_location
+        npc = spawn_npcs_for_location('fantasy', self.char.current_location, self.char, count=1)[0]
+        npc.affection = 90
+        npc.relationship = 'lover'
+        npc.save(using='fantasy')
+
+        resp = self.client.post(reverse('game:npc_action'), {
+            'npc_id': npc.id,
+            'action_type': 'romance',
+            'kind': 'propose_marriage',
+        })
+        self.assertEqual(resp.status_code, 302)
+        npc.refresh_from_db()
+        self.assertEqual(npc.relationship, 'spouse')

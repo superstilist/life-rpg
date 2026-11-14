@@ -1,0 +1,189 @@
+
+/* ==========================================================================
+   NPC Sandbox Panel (Процедурні жителі краю)
+   ========================================================================== */
+
+.npc-sandbox-box {
+    background: #0a0f16;
+}
+
+.npc-stream {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.npc-card {
+    border: 1px solid rgba(255, 255, 255, 0.09);
+    border-radius: 3px;
+    background: rgba(13, 17, 23, 0.6);
+    overflow: hidden;
+    transition: border-color 0.15s ease;
+}
+
+.npc-card:hover {
+    border-color: rgba(88, 166, 255, 0.35);
+}
+
+.npc-card[open] {
+    border-color: rgba(88, 166, 255, 0.45);
+    background: rgba(13, 17, 23, 0.9);
+}
+
+.npc-card-head {
+    list-style: none;
+    cursor: pointer;
+    padding: 0.55rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    user-select: none;
+}
+
+.npc-card-head::-webkit-details-marker {
+    display: none;
+}
+
+.npc-card-head::after {
+    content: "▸";
+    margin-left: auto;
+    color: #8b949e;
+    font-size: 0.7rem;
+    transition: transform 0.15s ease;
+}
+
+.npc-card[open] .npc-card-head::after {
+    transform: rotate(90deg);
+}
+
+.npc-name {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: #f0f6fc;
+}
+
+.npc-role {
+    font-size: 0.68rem;
+    color: #8b949e;
+    letter-spacing: 0.04em;
+}
+
+.npc-rel {
+    font-size: 0.6rem;
+    padding: 0.1rem 0.35rem;
+    border-radius: 2px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #c9d1d9;
+    letter-spacing: 0.04em;
+}
+
+.rel-lover, .rel-spouse {
+    color: #f472b6;
+    border-color: rgba(244, 114, 182, 0.4);
+}
+
+.rel-nemesis, .rel-rival {
+    color: #f85149;
+    border-color: rgba(248, 81, 73, 0.4);
+}
+
+.rel-friend, .rel-confidant {
+    color: #79c0ff;
+    border-color: rgba(121, 192, 255, 0.4);
+}
+
+.npc-card-body {
+    padding: 0.6rem 0.7rem 0.7rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.npc-meta-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.7rem;
+    color: #8b949e;
+}
+
+.npc-appearance {
+    font-size: 0.7rem;
+    color: #a5d6ff;
+    font-style: italic;
+    line-height: 1.35;
+}
+
+.npc-quote {
+    font-size: 0.74rem;
+    color: #c9d1d9;
+    line-height: 1.4;
+    padding: 0.45rem 0.55rem;
+    border-left: 2px solid rgba(88, 166, 255, 0.4);
+    background: rgba(88, 166, 255, 0.05);
+}
+
+.npc-stats-row {
+    display: flex;
+    gap: 0.75rem;
+    font-size: 0.68rem;
+    color: #8b949e;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.npc-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.35rem;
+}
+
+.npc-action-form {
+    display: contents;
+}
+
+.npc-btn {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #c9d1d9;
+    font-family: inherit;
+    font-size: 0.65rem;
+    padding: 0.35rem 0.2rem;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.13s ease;
+    white-space: nowrap;
+}
+
+.npc-btn:hover {
+    background: rgba(88, 166, 255, 0.14);
+    border-color: #58a6ff;
+    color: #ffffff;
+}
+
+.romance-btn:hover {
+    background: rgba(244, 114, 182, 0.16);
+    border-color: #f472b6;
+}
+
+.kill-btn {
+    grid-column: span 4;
+    color: #f85149;
+    border-color: rgba(248, 81, 73, 0.25);
+}
+
+.kill-btn:hover {
+    background: rgba(248, 81, 73, 0.18);
+    border-color: #f85149;
+    color: #ffffff;
+}
+
+@media (max-width: 600px) {
+    .npc-actions-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .kill-btn {
+        grid-column: span 2;
+    }
+}

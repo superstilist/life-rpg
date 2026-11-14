@@ -172,6 +172,55 @@ ORIGINS = [
         'trait': 'Спадщина лицаря',
         'location': 'Селище Окгем'
     },
+    {
+        'text': 'Народився у підвалі мегаблоку «Колиска», де сервери гуділи колисковими мелодіями.',
+        'bonus': {'intelligence': 3, 'mana': 20},
+        'trait': 'Шепіт коду',
+        'location': 'Сховище «Колиска»'
+    },
+    {
+        'text': 'Виріс на сміттєвих полях нижнього рівня, серед ржавих роботів та чорних ринків.',
+        'bonus': {'agility': 4, 'luck': 2},
+        'trait': 'Вуличний інстинкт',
+        'location': 'Сміттєві Поля'
+    },
+    {
+        'text': 'Учень Аркана-Тех, де руни вчать писати як код.',
+        'bonus': {'intelligence': 4, 'charisma': 1},
+        'trait': 'Кібер-магічний розум',
+        'location': 'Академія Аркана-Тех'
+    },
+    {
+        'text': 'Вижив у Неоновому Розломі, де реальність розривається на шматки.',
+        'bonus': {'mana': 25, 'luck': 2},
+        'trait': 'Спорідненість з розломом',
+        'location': 'Неоновий Розлом'
+    },
+    {
+        'text': 'Аристократ Верхнього Міста, де корпорації грають у шахи життями.',
+        'bonus': {'charisma': 4, 'gold': 100},
+        'trait': 'Шляхетна кров',
+        'location': 'Верхнє Місто'
+    },
+    {
+        'text': 'Синтетик з пробудженою душею, що шукає свого місця між машиною та людиною.',
+        'bonus': {'strength': 2, 'intelligence': 2, 'mana': 10},
+        'trait': 'Пробуджена душа',
+        'location': 'Глибокий Код'
+    },
+    {
+        'text': 'Вампір-корпорат, що живиться даними та емоціями, володар мегакорпорації.',
+        'bonus': {'charisma': 3, 'strength': 2},
+        'trait': 'Корпоративна хватка',
+        'location': 'Верхнє Місто'
+    },
+    {
+        'text': 'Відьма Коду, що пише заклинання як виконуваний код.',
+        'bonus': {'intelligence': 5, 'mana': 20},
+        'trait': 'Компілятор магії',
+        'location': 'Академія Аркана-Тех'
+    },
+
 ]
 
 NAME_SYLLABLES = {
@@ -229,6 +278,12 @@ NAME_SYLLABLES = {
     'Wild Beastkin': (['Fen', 'Gryz', 'Kor', 'Raka'], ['fang', 'claw', 'tail']),
     'Shadow Tiefling': (['Az', 'Kaz', 'Mal', 'Mor'], ['akiel', 'akor', 'gash']),
     'Dragonborn': (['Bal', 'Drak', 'Ign', 'Kald'], ['khor', 'ash', 'thas']),
+    'Неоновий Ельф': (['Ael', 'Lir', 'Vael', 'Thal', 'Syl', 'Nyr', 'Kael', 'Vex'], ['wyn', 'riel', 'thas', 'mir', 'dor', 'iel', 'on', 'ix']),
+    'Кібер-Гном': (['Bor', 'Grim', 'Thok', 'Varn', 'Krag', 'Dorn', 'Giz', 'Tik'], ['ix', 'on', 'ek', 'ar', 'um', 'or', 'bit', 'net']),
+    'Відьма Коду': (['Mira', 'Vex', 'Luna', 'Sera', 'Nyx', 'Asha', 'Hex', 'Rune'], ['tha', 'ra', 'lia', 'na', 'ia', 'ka', 'cy', 'da']),
+    'Вуличний Вовк': (['K', 'X', 'Z', 'N', 'R', 'J', 'V', 'T'], ['ix', 'on', 'ex', 'ar', 'oz', 'ak', 'ky', 'sh']),
+    'Вампір Корпорації': (['Vlad', 'Luc', 'Drak', 'Mor', 'Kael', 'Vor', 'Dex', 'Raz'], ['mont', 'gard', 'stein', 'val', 'ric', 'thorn', 'corp', 'net']),
+    'Синтетик-Андроїд': (['Unit', 'Model', 'Echo', 'Nova', 'Apex', 'Zero', 'Lux', 'Syn'], ['-7', '-X', '-Prime', '-Ω', '-9', '-S', '-K', '-V']),
 }
 
 TRAITS_POOL = [

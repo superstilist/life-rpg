@@ -50,6 +50,19 @@ WORLD_PRESETS: Dict[str, Dict[str, Any]] = {
             'twin-pane-commander', 'water-caustics', 'wireframe-city',
             'volcano-eruption', 'starry-ridge'
         ]
+    },
+    'neon_arcana_heartfire': {
+        'id': 'neon_arcana_heartfire',
+        'name': 'Неоновий Арканум: Серця Залізного Вогню',
+        'desc': 'Кіберпанк-мегаполіс, де код замінює кров, а руни — програмний код. Темне міське фентезі з неоновими катедралями, корпоративними вампірами та романтикою, що ламає системи.',
+        'threat': 'Сплячий Архітектор Коду',
+        'races': ['Неоновий Ельф', 'Кібер-Гном', 'Відьма Коду', 'Вуличний Вовк', 'Вампір Корпорації', 'Синтетик-Андроїд'],
+        'pieces': [
+            'neon-city-rain', 'cyberpunk-alley', 'matrix-rain',
+            'data-flow', 'neon-sign-flicker', 'holo-grid-sphere',
+            'computer-lab-terminals', 'wireframe-city', 'terminal-session', 'glitch-title-settle'
+        ],
+        'locations': ['Сховище «Колиска»']
     }
 }
 
@@ -75,6 +88,10 @@ ALL_ACT_LOCATIONS = {
     'steampunk_abyss': [
         'Слобода Котельників та Зварювальників', 'Парові Доки Великого Каналу', 'Ефірне Роздоріжжя Шестерень', 'Лінія Барикад Проти Автоматонів',
         'Верхній Сапфіровий Палац Паробаронів', 'Пекло Головного Котла', 'Залізна Твердиня Архімашиніста', 'Шпиль Вічного Двигуна'
+    ],
+    'neon_arcana_heartfire': [
+        'Сховище «Колиска»', 'Сміттєві Поля', 'Академія Аркана-Тех', 'Неоновий Розлом',
+        'Верхнє Місто', 'Глибокий Код', 'Вежа Архітектора', 'Скрижалі Вічності'
     ]
 }
 
@@ -110,18 +127,57 @@ def build_vector_plot_act(act_id: int, world_id: str, seed: int, plot_vector: Di
 
     tone = "похмурий" if l_s < -0.2 else ("піднесений" if l_s > 0.2 else "врівноважений")
 
+    # --- Процедурний зустрічний NPC сцени (унікальний для акту та зерна) ---
+    from .npc_sandbox import generate_local_npc
+    scene_npc = generate_local_npc(
+        world_id=world_id,
+        location=current_location,
+        seed_val=seed,
+        turn=act_id,
+        race=world.get('races', ['Людина'])[0],
+        variant=act_id * 31 + 7,
+    )
+    npc_name = scene_npc['name']
+    npc_role = scene_npc['role_title']
+    npc_temper = scene_npc['temperament']
+    npc_appearance = ", ".join(scene_npc['appearance'])
+    npc_style = scene_npc['dialogue_style']
+
+    npc_opening = {
+        'formal': f"{npc_name} урочисто вклоняється: «Вітаю тебе, {character_name}.»",
+        'rustic': f"{npc_name} спльовує й бурчить: «Ну і кого це вітер приніс...»",
+        'poetic': f"{npc_name}, зачарований краєм, шепоче: «Давно я чекав на таку зустріч...»",
+        'curt': f"{npc_name} суворо кивнув: «Кажи швидше, час не чекає.»",
+        'flirtatious': f"{npc_name} з хитрим поглядом посміхається: «О, який цікавий мандрівник...»",
+    }.get(npc_style, f"{npc_name} звертається до тебе:")
+
+    temper_line = {
+        'noble': "У його/її погляді читається гідність і гордість.",
+        'cunning': "Оживі хитро блищать в очах, оцінюючи твою вигоду.",
+        'hotheaded': "Він/вона здається готовим/ою спалахнути від першого слова.",
+        'melancholic': "На обличчі відсутній спокій, ніби він/вона втратила щось дорогоцінне.",
+        'romantic': "Його/її погляд теплий і трохи запальний.",
+        'greedy': "Жадібні очі оглядають твоє спорядження й гаманець.",
+        'fanatic': "Вогник фанатизму палає в очах назустріч твоїм словам.",
+        'timid': "Він/вона трохи змішується, але намагається не відвертатися.",
+    }.get(npc_temper, "")
+
     phases = [
         {
             "speaker": "Оповідач",
-            "text": f"Світ «{world['name']}» розгортає перед вами скрижалі долі у місці «{current_location}». Загроза — {threat} — кидає свою тінь, і світ змінюється щомиті."
+            "text": f"Світ «{world['name']}» розгортає перед вами скрижалі долі у місці «{current_location}». Загроза — {threat} — кидає свою тінь, і саме тут ваш шлях перетинається з чужим."
         },
         {
             "speaker": "Оповідач",
-            "text": f"Ваші вчинки, {character_name}, формують тканину цієї епохи. Кожен вибір змінює вектор балансу сил: люди та сили відчувають {tone} відблиск ваших намірів."
+            "text": f"Крізь {tone} туман місцевості проступає постать: {npc_name}, {npc_role.lower()} — {npc_appearance}. {temper_line} Ваші вчинки формують тканину цієї епохи, і {character_name} відчуває, що ця зустріч вже вплинула на вектор балансу сил."
         },
         {
-            "speaker": "Провісник Долі",
-            "text": f"«Час настав, {character_name}. Твій шлях веде просто до серця випробування. Обирай обачно!»"
+            "speaker": npc_name,
+            "text": f"{npc_opening} «Слухай, мандрівник: {threat} стає все сильнішим. Мені потрібна твоя допомога — або твоя зброя. Але спершу покажи, що ти за людина.»"
+        },
+        {
+            "speaker": "Оповідач",
+            "text": f"Повітря напружилося. {npc_name} чекає вашого слова — або вашого вчинку. Це момент, коли доля залежить від вибору."
         }
     ]
 
@@ -146,6 +202,22 @@ def build_vector_plot_act(act_id: int, world_id: str, seed: int, plot_vector: Di
             "vector_delta": {"aggression_diplomacy": -0.25, "chaos_order": 0.2},
             "stat_check": "charisma",
             "reward": {"score": 140, "reputation": 5}
+        },
+        {
+            "id": f"act_{act_id}_opt_d",
+            "prose": f"Звернутися безпосередньо до {npc_name} ({npc_role.lower()}), переконуючи його/її приєднатися до вашого плану.",
+            "vector_delta": {"aggression_diplomacy": -0.1, "mystery_reason": 0.15},
+            "stat_check": "charisma",
+            "reward": {"score": 150, "reputation": 8},
+            "npc_recruit": True
+        },
+        {
+            "id": f"act_{act_id}_opt_e",
+            "prose": f"Замість союзника зробити {npc_name} своїм заручником — силою примусити його/її відати таємницю ворога.",
+            "vector_delta": {"aggression_diplomacy": 0.3, "chaos_order": 0.25, "light_shadow": -0.2},
+            "stat_check": "strength",
+            "reward": {"score": 160, "gold": 35},
+            "npc_threaten": True
         }
     ]
 
@@ -159,5 +231,11 @@ def build_vector_plot_act(act_id: int, world_id: str, seed: int, plot_vector: Di
         "location": current_location,
         "phases": phases,
         "choices": choices,
-        "scene_piece": piece
+        "scene_piece": piece,
+        "scene_npc": {
+            "name": npc_name,
+            "role_title": npc_role,
+            "temperament": npc_temper,
+            "appearance": npc_appearance,
+        }
     }
