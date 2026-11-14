@@ -1001,6 +1001,22 @@ def get_act_ascii_art(act_id: int) -> str:
     return art_map.get(act_id, "   /\\ \n  /  \\ \n /____\\")
 
 
+
+ACT_ANIMATED_PIECES = {
+    1: 'campfire-under-stars',
+    2: 'autumn-forest',
+    3: 'castle-bridge-dawn',
+    4: 'lightning-storm',
+    5: 'imperial-palace-snow',
+    6: 'bat-cave-dusk',
+    7: 'volcano-eruption',
+    8: 'starry-ridge',
+}
+
+def get_act_animated_piece(act_id: int) -> str:
+    return ACT_ANIMATED_PIECES.get(act_id, 'campfire-under-stars')
+
+
 def get_active_novel_state(character) -> Dict[str, Any]:
     """
     Повертає поточний стан проходження новели для персонажа:
@@ -1091,6 +1107,7 @@ def get_active_novel_state(character) -> Dict[str, Any]:
         "act_id": act_id,
         "act_data": act_data,
         "scene_ascii_art": get_act_ascii_art(act_id),
+        "scene_piece": get_act_animated_piece(act_id),
         "current_phase_index": current_phase,
         "total_phases": total_phases,
         "max_phase": total_phases,

@@ -5,36 +5,35 @@
 <div class="ascii-box" style="height: 100%; overflow: hidden;">
     <pre class="portal-title-banner desktop-only">
 ╔══════════════════════════════════════════════════════════════════════════════════╗
-║  повна книга життя та хроніка долі                                               ║
-║  літопис випробувань, виборів і досягнень в Етерії                               ║
-╚══════════════════════════════════════════════════════════════════════════════════╝
+║  КНИГА ЖИТТЯ ТА ХРОНІКА ДОЛІ // ПОВНИЙ АВТОБІОГРАФІЧНИЙ РОМАН                    ║
+║  Літопис випробувань, доленосних виборів та звершень у світі Етерія              ║
+╚══════════════════════════════════════════════════════════════════════════════════╝</pre>
 
     <div class="ascii-box-header">
         <div>
-            <span style="color: var(--c-cyan);">📜 хроніка життя:</span>
-            <strong style="color: var(--text-pure); margin-left: 8px; font-size: 1.1rem;">{{ character.name }}</strong>
-            <span style="color: var(--c-cyan); margin-left: 6px;">// {{ character.race }}</span>
+            <span style="color: var(--c-gold); font-size: 1.05rem;">📜 Книга життя:</span>
+            <strong style="color: var(--text-pure); margin-left: 8px; font-size: 1.15rem;">{{ character.name }}</strong>
+            <span style="color: var(--c-cyan); margin-left: 6px; font-weight: 600;">[{{ character.race }}]</span>
         </div>
         <div style="display: flex; align-items: center; gap: 14px;">
-            <span style="font-size: 0.9rem; color: var(--c-gold);">записів: {{ logs|length }}</span>
-            <a href="{% url 'game:play' %}" class="btn-ascii btn-highlight" style="padding: 5px 14px; font-size: 0.85rem;">[← назад]</a>
+            <span style="font-size: 0.88rem; color: var(--c-gold); font-weight: 600;">Записів: {{ logs|length }}</span>
+            <a href="{% url 'game:play' %}" class="btn-ascii btn-highlight" style="padding: 5px 14px; font-size: 0.86rem;">
+                ← Назад до гри
+            </a>
         </div>
     </div>
 
-    <!-- ASCII chronicle art (open book, asciiart.eu) -->
-    <pre class="ascii-panel-art desktop-only">{{ ASCII_ITEM_ARTS.book }}</pre>
-
-    <!-- Підсумкова плашка героя з ASCII-барами та статами -->
-    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 12px 16px; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: 2px; margin-bottom: 12px; flex-shrink: 0; font-size: 0.9rem;">
-        <div><span style="color: var(--text-muted);">Прожито років:</span> <strong style="color: var(--c-gold);">{{ character.age }}</strong> ({{ character.life_stage }})</div>
-        <div><span style="color: var(--text-muted);">ОЗ:</span> <strong style="color: var(--c-ruby);">{{ character.hp_bar }} {{ character.hp }}/{{ character.max_hp }}</strong></div>
-        <div><span style="color: var(--text-muted);">МАНА:</span> <strong style="color: var(--c-cyan);">{{ character.mana_bar }} {{ character.mana }}/{{ character.max_mana }}</strong></div>
+    <!-- Підсумкова плашка героя зі статами -->
+    <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border-medium); border-radius: var(--radius-sm); margin-bottom: 12px; flex-shrink: 0; font-size: 0.88rem;">
+        <div><span style="color: var(--text-muted);">Вік:</span> <strong style="color: var(--c-gold);">{{ character.age }} р.</strong> ({{ character.life_stage }})</div>
+        <div><span style="color: var(--text-muted);">ОЗ:</span> <strong style="color: var(--c-ruby);">{{ character.hp }}/{{ character.max_hp }}</strong> {{ character.hp_bar }}</div>
+        <div><span style="color: var(--text-muted);">Мана:</span> <strong style="color: var(--c-cyan);">{{ character.mana }}/{{ character.max_mana }}</strong> {{ character.mana_bar }}</div>
         <div><span style="color: var(--text-muted);">Золото:</span> <strong style="color: var(--c-gold);">{{ character.gold }}g</strong></div>
         <div><span style="color: var(--text-muted);">Слава:</span> <strong style="color: var(--c-emerald);">{{ character.score }} очок</strong></div>
         <div>
             <span style="color: var(--text-muted);">Статус:</span>
             {% if character.is_alive %}
-                <strong style="color: var(--c-emerald);">● ЖИВИЙ</strong> у краю {{ character.current_location }}
+                <strong style="color: var(--c-emerald);">● ЖИВИЙ</strong> ({{ character.current_location }})
             {% else %}
                 <strong style="color: var(--c-ruby);">● СПОЧИЛИЙ</strong> ({{ character.cause_of_death }})
             {% endif %}
@@ -44,21 +43,23 @@
     <!-- Стрічка подій хроніки з внутрішнім скролом -->
     <div class="novel-chronicle-stream" style="flex: 1; min-height: 0; overflow-y: auto;">
         {% for log in logs %}
-            <div class="novel-stream-entry novel-stream-{{ log.log_type }}">
-                <div class="novel-stream-meta">
-                    <span class="novel-age-badge">Рік {{ log.age }} // Хід {{ log.turn }}</span>
-                    <span class="log-badge-{{ log.log_type }}">[{{ log.log_type|upper }}]</span>
-                    <strong style="color: var(--text-pure); margin-left: 8px; font-size: 0.98rem;">{{ log.title|prose_title }}</strong>
-                    <span style="margin-left: auto; font-size: 0.82rem; color: var(--text-muted);">
+            <div class="novel-stream-entry" style="border-left-width: 4px; padding: 10px 14px; margin-bottom: 4px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px; margin-bottom: 4px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="novel-age-badge" style="font-size: 0.8rem; padding: 2px 6px;">Рік {{ log.age }}</span>
+                        <span style="font-size: 0.76rem; color: var(--text-muted);">[Хід {{ log.turn }}]</span>
+                        <strong style="color: var(--text-pure); font-size: 0.96rem;">{{ log.title|prose_title }}</strong>
+                    </div>
+                    <span style="font-size: 0.78rem; color: var(--text-dim);">
                         {{ log.created_at|date:"Y-m-d H:i" }}
                     </span>
                 </div>
-                <div class="novel-stream-text" style="font-size: 0.96rem;">
+                <div style="font-size: 0.94rem; color: var(--text-secondary); line-height: 1.6;">
                     {{ log.text|prose }}
                 </div>
             </div>
         {% empty %}
-            <p style="color: var(--text-muted); padding: 16px;">Хроніка порожня. Розпочніть життєву подорож на панелі героя!</p>
+            <p style="color: var(--text-muted); padding: 20px; text-align: center;">Хроніка порожня. Розпочніть життєву подорож на панелі героя!</p>
         {% endfor %}
     </div>
 </div>

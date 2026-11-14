@@ -12,11 +12,11 @@
     <p class="menu-tagline">Народитись. Вибрати. Стати легендою — або тінню.</p>
 
     <nav class="menu-actions" aria-label="Головне меню">
-        <form method="POST" action="{% url 'game:start_game' %}" class="menu-form">
+        <form method="POST" action="{% url 'game:start_game' %}" class="menu-form" id="play-form">
             {% csrf_token %}
-            <button type="submit" class="menu-btn menu-btn-primary">
+            <button type="submit" class="menu-btn menu-btn-primary" id="btn-play-start">
                 <span class="menu-btn-label">▶ грати</span>
-                <span class="menu-btn-sub">почати нове сходження</span>
+                <span class="menu-btn-sub">почати нове сходження з віку 0</span>
             </button>
         </form>
 
@@ -34,10 +34,10 @@
 
         <a href="{% url 'game:graveyard' %}" class="menu-btn">
             <span class="menu-btn-label">⚰ зала слави</span>
-            <span class="menu-btn-sub">зала слави Етерії</span>
+            <span class="menu-btn-sub">{{ hall_of_fame|length }} імен у скрижалях вічності</span>
         </a>
     </nav>
 
-    <p class="menu-hint">{{ hall_of_fame|length }} імен вкарбовано у скрижалі · один шлях — одна сесія</p>
+    <p class="menu-hint">один шлях — одна сесія · Етерія пам'ятає кожного</p>
 </div>
 {% endblock %}

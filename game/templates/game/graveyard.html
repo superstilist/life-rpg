@@ -12,27 +12,28 @@
 ╚══════════════════════════════════════════════════════════════════════════════════╝</pre>
 
             <div class="ascii-box-header ascii-box-header-ruby">
-                <div>
-                    <span>🏆 ЗАЛА СЛАВИ // СПОЧИЛІ ТА ВОЗНЕСЕНІ ЛЕГЕНДИ</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--c-gold); font-size: 1.1rem;">🏆</span>
+                    <span>ЗАЛА СЛАВИ // ВІЧНІ ЛЕГЕНДИ</span>
                 </div>
-                <span style="font-size: 0.85rem; color: var(--c-gold);">[ПАМ'ЯТЬ ВІКІВ]</span>
+                <span style="font-size: 0.82rem; color: var(--c-gold); background: rgba(246, 199, 68, 0.12); border: 1px solid var(--border-gold); padding: 2px 8px; border-radius: var(--radius-sm);">
+                    ПАМ'ЯТЬ ВІКІВ ({{ deceased|length }})
+                </span>
             </div>
 
-            <div class="ascii-header-rule desktop-only" aria-hidden="true">{{ ASCII_MENU_ARTS.stars_divider }}</div>
-
-            <div style="display: flex; gap: 16px; align-items: center; margin-bottom: 12px; flex-shrink: 0;">
-                <pre style="color: var(--c-silver); font-size: 0.82rem; line-height: 1.15; background: #04070d; padding: 8px 12px; border: 1px solid var(--border-subtle); border-radius: 2px;">
-     .---.
-    /     \
-   | R.I.P |
-   |   +   |
-   |_______|</pre>
+            <div style="display: flex; gap: 14px; align-items: center; margin-bottom: 12px; flex-shrink: 0; background: var(--bg-card); padding: 10px 14px; border-radius: var(--radius-sm); border: 1px solid var(--border-subtle);">
+                <pre style="color: var(--c-silver); font-size: 0.82rem; line-height: 1.15; background: #030509; padding: 6px 10px; border: 1px solid var(--border-medium); border-radius: 2px; flex-shrink: 0;">
+  .---.  
+ /     \ 
+| R.I.P |
+|   +   |
+|_______|</pre>
                 <div>
-                    <p style="margin: 0 0 4px 0; font-size: 0.98rem; color: var(--text-pure);">
+                    <p style="margin: 0 0 4px 0; font-size: 0.92rem; color: var(--text-pure); font-weight: 600;">
                         Священний меморіал героїв Етерії, що пройшли свій шлях від 0 років до вічності.
                     </p>
-                    <p style="margin: 0; font-size: 0.84rem; color: var(--text-muted);">
-                        Рахунок враховує прожиті роки, багатство, репутацію, характеристики та +600 очок за Довголіття (80+ років).
+                    <p style="margin: 0; font-size: 0.8rem; color: var(--text-muted);">
+                        Рахунок враховує вік, золото, характеристики, вибори та +600 очок за Довголіття (80+ р.).
                     </p>
                 </div>
             </div>
@@ -42,7 +43,7 @@
                     <table class="ascii-table">
                         <thead>
                             <tr>
-                                <th>#</th>
+                                <th style="width: 45px;">РАНГ</th>
                                 <th>ІМ'Я ТА РАСА</th>
                                 <th>ВІК</th>
                                 <th>СЛАВА</th>
@@ -53,18 +54,33 @@
                         <tbody>
                             {% for char in deceased %}
                                 <tr>
-                                    <td style="color: var(--c-gold); font-weight: bold;">#{{ forloop.counter }}</td>
-                                    <td><strong style="color: var(--text-pure);">{{ char.name }}</strong> <span style="color: var(--c-cyan);">({{ char.race }})</span></td>
+                                    <td>
+                                        {% if forloop.counter == 1 %}
+                                            <span style="color: #ffd700; font-weight: 800; text-shadow: 0 0 8px rgba(255, 215, 0, 0.6);">🥇 #1</span>
+                                        {% elif forloop.counter == 2 %}
+                                            <span style="color: #c0c0c0; font-weight: 800;">🥈 #2</span>
+                                        {% elif forloop.counter == 3 %}
+                                            <span style="color: #cd7f32; font-weight: 800;">🥉 #3</span>
+                                        {% else %}
+                                            <span style="color: var(--text-muted);">#{{ forloop.counter }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <strong style="color: var(--text-pure);">{{ char.name }}</strong> 
+                                        <span style="color: var(--c-cyan); font-size: 0.82rem;">({{ char.race }})</span>
+                                    </td>
                                     <td>{{ char.age }} р.</td>
-                                    <td style="color: var(--c-gold); font-weight: bold;">{{ char.score }}</td>
+                                    <td style="color: var(--c-gold); font-weight: 700;">{{ char.score }}</td>
                                     <td style="color: var(--c-gold);">{{ char.gold }}g</td>
-                                    <td style="font-size: 0.86rem; color: var(--c-ruby);">{{ char.cause_of_death }}</td>
+                                    <td style="font-size: 0.84rem; color: var(--c-ruby);">{{ char.cause_of_death }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 {% else %}
-                    <p style="color: var(--text-muted); padding: 14px;">Зала Слави очікує свого першого героя.</p>
+                    <p style="color: var(--text-muted); padding: 18px; text-align: center;">
+                        Зала Слави очікує свого першого героя. Зробіть своє сходження!
+                    </p>
                 {% endif %}
             </div>
         </div>
@@ -74,12 +90,14 @@
     <div class="portal-right-col">
         <div class="ascii-box" style="height: 100%; overflow: hidden;">
             <div class="ascii-box-header">
-                <div>
-                    <span style="color: var(--c-emerald);">● ЖИВІ МАНДРІВНИКИ СВІТУ ЕТЕРІЯ</span>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="color: var(--c-emerald); font-size: 0.95rem;">●</span>
+                    <span style="color: var(--c-emerald);">ЖИВІ МАНДРІВНИКИ СВІТУ</span>
+                    <span style="font-size: 0.8rem; color: var(--text-muted);">({{ living|length }})</span>
                 </div>
-                <div style="display: flex; gap: 10px;">
-                    <a href="{% url 'game:index' %}" class="btn-ascii" style="padding: 4px 12px; font-size: 0.82rem;">[← До порталу]</a>
-                    <a href="{% url 'game:play' %}" class="btn-ascii btn-highlight" style="padding: 4px 12px; font-size: 0.82rem;">[▶ До гри]</a>
+                <div style="display: flex; gap: 8px;">
+                    <a href="{% url 'game:index' %}" class="btn-ascii" style="padding: 4px 10px; font-size: 0.8rem;">[🏠 Меню]</a>
+                    <a href="{% url 'game:play' %}" class="btn-ascii btn-highlight" style="padding: 4px 12px; font-size: 0.8rem;">[⚔️ До гри]</a>
                 </div>
             </div>
 
@@ -90,8 +108,8 @@
                             <tr>
                                 <th>ГЕРОЙ</th>
                                 <th>РАСА</th>
-                                <th>ВІК ТА ЕТАП</th>
-                                <th>ПОТОЧНИЙ КРАЙ</th>
+                                <th>ВІК</th>
+                                <th>КРАЙ</th>
                                 <th>ОЗ</th>
                                 <th>ЗОЛОТО</th>
                                 <th>СЛАВА</th>
@@ -102,17 +120,19 @@
                                 <tr>
                                     <td><strong style="color: var(--text-pure);">{{ char.name }}</strong></td>
                                     <td><span style="color: var(--c-cyan);">{{ char.race }}</span></td>
-                                    <td>{{ char.age }} р. ({{ char.life_stage }})</td>
+                                    <td>{{ char.age }} р.</td>
                                     <td style="color: var(--c-emerald);">{{ char.current_location }}</td>
                                     <td style="color: var(--c-ruby);">{{ char.hp }}/{{ char.max_hp }}</td>
                                     <td style="color: var(--c-gold);">{{ char.gold }}g</td>
-                                    <td style="color: var(--c-gold); font-weight: bold;">{{ char.score }}</td>
+                                    <td style="color: var(--c-gold); font-weight: 700;">{{ char.score }}</td>
                                 </tr>
                             {% endfor %}
                         </tbody>
                     </table>
                 {% else %}
-                    <p style="color: var(--text-muted); padding: 14px;">Зараз немає активних живих героїв на шляхах Етерії.</p>
+                    <p style="color: var(--text-muted); padding: 18px; text-align: center;">
+                        Зараз немає активних живих героїв. Розпочніть нову гру в Меню!
+                    </p>
                 {% endif %}
             </div>
         </div>

@@ -20,7 +20,9 @@ import { play, withParams } from "./player.js";
 
 // Pieces sit next to this file on ascii-magic.com (/ascii/ascii.js, /ascii/pieces/) and one
 // folder up in the npm package (runtime/ascii.js, pieces/), so self-hosting the package works too.
-const BASE = new URL(/\/runtime\/[^/]*$/.test(new URL(import.meta.url).pathname) ? "../" : ".", import.meta.url).href;
+const _importUrl = new URL(import.meta.url);
+const _isRuntime = /\/runtime\/[^/]*$/.test(_importUrl.pathname);
+const BASE = new URL(_isRuntime ? '../' : './', import.meta.url).href;
 
 class AsciiArt extends HTMLElement {
   static get observedAttributes() { return ["piece", "speed", "still", "size", "bg", "look", "chars", "mono", "contrast", "dot-size", "steps", "density", "all"]; }
@@ -48,14 +50,9 @@ class AsciiArt extends HTMLElement {
       // a piece's own settings come straight from attributes of the same name (repo="..." stars="...")
       const P = mod.meta.params || {}, values = {};
       for (const k of Object.keys(P)) if (this.hasAttribute(k)) values[k] = this.getAttribute(k);
-      // Continue a previously saved clock instead of restarting on every reload.
-      const attrT0 = parseFloat(this.getAttribute("t0"));
-      const t0 = this._t != null ? this._t : (isFinite(attrT0) && attrT0 > 0 ? attrT0 : undefined);
       this.stop = play(this.pre, withParams(mod, values), {
         speed: parseFloat(this.getAttribute("speed")) || 1,
         still: this.hasAttribute("still") || undefined,
-        t0,
-        onFrame: (_frame, t) => { this._t = t; },
         look: {
           look: this.getAttribute("look") || undefined,
           chars: this.getAttribute("chars") || undefined,

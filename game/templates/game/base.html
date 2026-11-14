@@ -4,103 +4,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta name="theme-color" content="#05080f">
+    <meta name="theme-color" content="#03060d">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>ЕТЕРІЯ // Хроніки фентезійного життя (З віку 0 до легенди)</title>
-    <link rel="stylesheet" href="{% static 'game/style.css' %}?v=menu7">
-    <style>
-        @media (max-width: 768px) {
-            html, body.terminal-screen {
-                width: 100% !important;
-                height: auto !important;
-                max-height: none !important;
-                overflow-x: hidden !important;
-                overflow-y: auto !important;
-            }
-            .terminal-container, main, .portal-screen-grid, .novel-screen-grid,
-            .portal-left-col, .novel-left-col, .ascii-box, .novel-story-panel {
-                height: auto !important;
-                max-height: none !important;
-                overflow: visible !important;
-            }
-            .portal-screen-grid, .novel-screen-grid {
-                grid-template-columns: 1fr !important;
-            }
-            .novel-right-col, .novel-inventory-panel, .novel-chronicle-panel {
-                height: auto !important;
-                max-height: none !important;
-                overflow: visible !important;
-            }
-            .novel-inventory-grid, .novel-chronicle-stream {
-                overflow: visible !important;
-                max-height: none !important;
-            }
-            .header-brand-bar {
-                flex-wrap: wrap !important;
-                gap: 6px !important;
-            }
-            .nav-links-bar {
-                flex-wrap: wrap !important;
-                width: 100% !important;
-            }
-            .desktop-only {
-                display: none !important;
-            }
-        }
-    </style>
+    <title>ЕТЕРІЯ // Хроніки Життя — Фентезійна Новела та Сага</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,600;0,700;0,800;1,400;1,700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'game/style.css' %}?v=full_banner_clean_1">
 </head>
-<body class="terminal-screen">
-    <!-- Animated ASCII background (ascii_sr upscaled arctic drift) -->
-    <div class="ascii-bg-layer" aria-hidden="true">
-        <ascii-art piece="arctic-icebergs"></ascii-art>
-    </div>
-    <script>
-        // Фон не починається з початку на кожному ході: час анімації зберігається між перезавантаженнями.
-        (function () {
-            var KEY = 'aetheria_bg_t';
-            var el = document.querySelector('.ascii-bg-layer ascii-art');
-            if (!el) return;
-            try {
-                var saved = parseFloat(sessionStorage.getItem(KEY));
-                if (isFinite(saved) && saved > 0) el.setAttribute('t0', String(saved));
-            } catch (e) {}
-            var save = function () {
-                if (el._t == null) return;
-                try { sessionStorage.setItem(KEY, String(el._t)); } catch (e) {}
-            };
-            setInterval(save, 500);
-            window.addEventListener('pagehide', save);
-        })();
-    </script>
-    <script type="module" src="{% static 'game/ascii/ascii.js' %}?v=menu7"></script>
-    <script type="module" src="{% static 'game/ascii-bg.js' %}?v=menu7"></script>
+<body class="terminal-screen {% if request.resolver_match.url_name == 'index' %}page-is-menu{% elif request.resolver_match.url_name == 'play' %}page-is-play{% endif %}">
+    <!-- Глобальна Шахівниця Переходу (Checkerboard Transition Grid) -->
+    <div id="chess-transition-grid" class="chess-grid-overlay" aria-hidden="true"></div>
+
+    <!-- Animated ASCII background (ONLY ON MAIN MENU) -->
+    {% if request.resolver_match.url_name == 'index' %}
+        <div class="ascii-bg-layer" aria-hidden="true">
+            <ascii-art piece="arctic-icebergs"></ascii-art>
+        </div>
+        <script>
+            (function () {
+                var KEY = 'aetheria_bg_t';
+                var el = document.querySelector('.ascii-bg-layer ascii-art');
+                if (!el) return;
+                try {
+                    var saved = parseFloat(sessionStorage.getItem(KEY));
+                    if (isFinite(saved) && saved > 0) el.setAttribute('t0', String(saved));
+                } catch (e) {}
+                var save = function () {
+                    if (el._t == null) return;
+                    try { sessionStorage.setItem(KEY, String(el._t)); } catch (e) {}
+                };
+                setInterval(save, 500);
+                window.addEventListener('pagehide', save);
+            })();
+        </script>
+        <script type="module" src="{% static 'game/ascii-bg.js' %}?v=full_banner_clean_1"></script>
+    {% endif %}
+
+    <!-- ASCII Web Component Script (loaded for both menu and in-game scene banners) -->
+    <script type="module" src="{% static 'game/ascii/ascii.js' %}?v=full_banner_clean_1"></script>
 
     <div class="terminal-container">
-        <!-- Calciel ASCII Header Bar -->
-        <header class="header-brand-bar">
-            <div class="brand-title">
-                <span class="brand-symbol">╔═◈═╗</span>
-                <span class="brand-name">ЕТЕРІЯ</span>
-                <span class="brand-tag desktop-only">[ФЕНТЕЗІ-НОВЕЛА OS]</span>
-            </div>
-            <nav class="nav-links-bar">
-                <a href="{% url 'game:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">[🏠 Меню]</a>
-                <a href="{% url 'game:play' %}" class="nav-link {% if request.resolver_match.url_name == 'play' %}active{% endif %}">[⚔️ Гра]</a>
-                <a href="{% url 'game:chronicle' %}" class="nav-link {% if request.resolver_match.url_name == 'chronicle' %}active{% endif %}">[📜 Хроніка]</a>
-                <a href="{% url 'game:graveyard' %}" class="nav-link {% if request.resolver_match.url_name == 'graveyard' %}active{% endif %}">[🏆 Меморіал]</a>
-            </nav>
-        </header>
+        <!-- Calciel ASCII Header Bar (Hidden on main menu AND on game play page) -->
+        {% if request.resolver_match.url_name != 'index' and request.resolver_match.url_name != 'play' %}
+            <header class="header-brand-bar">
+                <div class="brand-title">
+                    <span class="brand-symbol">◈</span>
+                    <span class="brand-name">ЕТЕРІЯ</span>
+                    <span class="brand-tag desktop-only">[ФЕНТЕЗІ-НОВЕЛА OS]</span>
+                </div>
+                <nav class="nav-links-bar" aria-label="Головна навігація">
+                    <a href="{% url 'game:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">
+                        <span>🏠</span> Меню
+                    </a>
+                    <a href="{% url 'game:play' %}" class="nav-link {% if request.resolver_match.url_name == 'play' %}active{% endif %}">
+                        <span>⚔️</span> Гра
+                    </a>
+                    <a href="{% url 'game:chronicle' %}" class="nav-link {% if request.resolver_match.url_name == 'chronicle' %}active{% endif %}">
+                        <span>📜</span> Хроніка
+                    </a>
+                    <a href="{% url 'game:graveyard' %}" class="nav-link {% if request.resolver_match.url_name == 'graveyard' %}active{% endif %}">
+                        <span>🏆</span> Зала Слави
+                    </a>
+                </nav>
+            </header>
 
-        <!-- ASCII menu rule (ascii-magic dotted rule) -->
-        <div class="ascii-header-rule desktop-only" aria-hidden="true">{{ ASCII_MENU_ARTS.dotted_rule }}</div>
+            <!-- ASCII menu rule (ascii-magic dotted rule) -->
+            <div class="ascii-header-rule desktop-only" aria-hidden="true">{{ ASCII_MENU_ARTS.dotted_rule }}</div>
+        {% endif %}
 
-        <!-- Flash messages / System Notifications -->
-        {% if messages %}
-            <div class="messages-container">
+        <!-- Flash messages / System Notifications (Hidden on play page to keep top 100% clean) -->
+        {% if messages and request.resolver_match.url_name != 'play' %}
+            <div class="messages-container" role="alert">
                 {% for message in messages %}
                     <div class="terminal-msg terminal-msg-{{ message.tags }}">
-                        &gt;&gt; {{ message }}
+                        <span style="font-weight: bold;">&gt;&gt;</span> {{ message }}
                     </div>
                 {% endfor %}
             </div>
@@ -111,53 +90,140 @@
             {% block content %}{% endblock %}
         </main>
 
-        <!-- Compact Footer Status Line -->
-        <footer class="footer-status desktop-only">
-            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
-                <div>Етерія пам'ятає кожного // хроніка триває</div>
-                <div>Етерія OS // <span class="blink-cursor">█</span></div>
-            </div>
-        </footer>
+        <!-- Compact Footer Status Line (Hidden on main menu AND on game play page) -->
+        {% if request.resolver_match.url_name != 'index' and request.resolver_match.url_name != 'play' %}
+            <footer class="footer-status desktop-only">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+                    <div>✦ Етерія пам'ятає кожного // Хроніка триває від 0 років до легенди ✦</div>
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <span style="color: var(--text-dim);">Клавіші: [Enter] Далі · [Tab] Пропустити · [1-4] Вибір</span>
+                        <span class="blink-cursor">█</span>
+                    </div>
+                </div>
+            </footer>
+        {% endif %}
     </div>
 
-    <!-- Keyboard Hotkeys Script -->
+    <!-- Universal Checkerboard Transition & Keyboard Hotkeys Script -->
     <script>
-        document.addEventListener('keydown', function(e) {
-            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
-                return;
-            }
+        (function() {
+            // 1. Setup High-Density 2D Chess Grid (20x12 = 240 seamless frameless cubes)
+            var grid = document.getElementById('chess-transition-grid');
+            if (grid) {
+                var cols = 20;
+                var rows = 12;
+                grid.style.setProperty('--chess-cols', cols);
+                grid.style.setProperty('--chess-rows', rows);
 
-            const key = e.key.toLowerCase();
+                // Noise-seeded 2D grid ripple: organic cluster dispersion, not a plain 1-line linear sweep
+                for (var r = 0; r < rows; r++) {
+                    for (var c = 0; c < cols; c++) {
+                        var cell = document.createElement('div');
+                        cell.className = 'chess-cell';
 
-            // Space or Enter to advance visual novel narrator phase
-            if (e.key === ' ' || e.key === 'Enter') {
-                const advanceBtn = document.getElementById('btn-advance-phase');
-                if (advanceBtn) {
+                        // 2D checkerboard offset + distance from center + pseudo-random jitter
+                        var dx = (c - cols / 2);
+                        var dy = (r - rows / 2);
+                        var dist = Math.sqrt(dx * dx + dy * dy);
+                        var isEvenCell = (c + r) % 2 === 0;
+
+                        // Alternating checkerboard timing so black & white squares pop in a staggered mosaic
+                        var checkerPhase = isEvenCell ? 0.03 : 0.09;
+                        var delay = (dist * 0.032) + checkerPhase + (Math.random() * 0.08);
+
+                        cell.style.transitionDelay = delay.toFixed(3) + 's';
+                        grid.appendChild(cell);
+                    }
+                }
+
+                // If page loaded, fade in / reveal from dark seamlessly
+                grid.classList.add('page-entering');
+                requestAnimationFrame(function() {
+                    setTimeout(function() {
+                        grid.classList.remove('page-entering');
+                    }, 60);
+                });
+
+                window.triggerChessTransition = function(onComplete) {
+                    grid.classList.add('active');
+                    setTimeout(onComplete, 720);
+                };
+
+                // Intercept navigation links for smooth chess wipe
+                document.addEventListener('click', function(e) {
+                    var link = e.target.closest('a');
+                    if (!link || !link.href) return;
+                    if (link.target === '_blank' || link.getAttribute('onclick')) return;
+                    if (link.href.startsWith('javascript:') || link.href.includes('#')) return;
+
+                    var url = new URL(link.href, window.location.href);
+                    if (url.origin === window.location.origin) {
+                        e.preventDefault();
+                        window.triggerChessTransition(function() {
+                            window.location.href = link.href;
+                        });
+                    }
+                });
+
+                // Intercept forms (Play, Start Game, Retire, Choices, Interlude)
+                document.addEventListener('submit', function(e) {
+                    var form = e.target;
+                    if (form.dataset.transitioning) return;
                     e.preventDefault();
-                    advanceBtn.click();
-                    return;
-                }
+                    form.dataset.transitioning = 'true';
+                    window.triggerChessTransition(function() {
+                        form.submit();
+                    });
+                });
             }
 
-            // Tab to pass narrator phases straight to choices
-            if (e.key === 'Tab') {
-                const passBtn = document.getElementById('btn-pass-phases');
-                if (passBtn) {
-                    e.preventDefault();
-                    passBtn.click();
+            // 2. Keyboard hotkeys
+            document.addEventListener('keydown', function(e) {
+                if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
                     return;
                 }
-            }
 
-            // Hotkeys 1, 2, 3 for event choices
-            if (['1', '2', '3'].includes(key)) {
-                const choiceBtn = document.querySelector(`.event-choice-btn[data-choice="${key}"]`);
-                if (choiceBtn) {
-                    choiceBtn.click();
-                    return;
+                var key = e.key;
+
+                // Space or Enter to advance visual novel narrator phase
+                if (key === ' ' || key === 'Enter') {
+                    var advanceBtn = document.getElementById('btn-advance-phase');
+                    if (advanceBtn) {
+                        e.preventDefault();
+                        advanceBtn.click();
+                        return;
+                    }
                 }
-            }
-        });
+
+                // Tab to pass narrator phases straight to choices
+                if (key === 'Tab') {
+                    var passBtn = document.getElementById('btn-pass-phases');
+                    if (passBtn) {
+                        e.preventDefault();
+                        passBtn.click();
+                        return;
+                    }
+                }
+
+                // Hotkeys 1, 2, 3, 4 (and Numpad) for event and novel choices
+                var choiceNum = null;
+                if (['1', '2', '3', '4'].includes(key)) {
+                    choiceNum = key;
+                } else if (e.code && e.code.startsWith('Numpad') && ['1', '2', '3', '4'].includes(e.code.replace('Numpad', ''))) {
+                    choiceNum = e.code.replace('Numpad', '');
+                }
+
+                if (choiceNum) {
+                    var choiceBtn = document.querySelector('.novel-choice-card[data-choice="' + choiceNum + '"]') ||
+                                    document.querySelector('.event-choice-btn[data-choice="' + choiceNum + '"]');
+                    if (choiceBtn) {
+                        e.preventDefault();
+                        choiceBtn.click();
+                        return;
+                    }
+                }
+            });
+        })();
     </script>
 </body>
 </html>
