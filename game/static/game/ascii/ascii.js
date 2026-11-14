@@ -48,9 +48,14 @@ class AsciiArt extends HTMLElement {
       // a piece's own settings come straight from attributes of the same name (repo="..." stars="...")
       const P = mod.meta.params || {}, values = {};
       for (const k of Object.keys(P)) if (this.hasAttribute(k)) values[k] = this.getAttribute(k);
+      // Continue a previously saved clock instead of restarting on every reload.
+      const attrT0 = parseFloat(this.getAttribute("t0"));
+      const t0 = this._t != null ? this._t : (isFinite(attrT0) && attrT0 > 0 ? attrT0 : undefined);
       this.stop = play(this.pre, withParams(mod, values), {
         speed: parseFloat(this.getAttribute("speed")) || 1,
         still: this.hasAttribute("still") || undefined,
+        t0,
+        onFrame: (_frame, t) => { this._t = t; },
         look: {
           look: this.getAttribute("look") || undefined,
           chars: this.getAttribute("chars") || undefined,

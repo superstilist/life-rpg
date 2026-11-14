@@ -8,7 +8,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>ЕТЕРІЯ // Хроніки фентезійного життя (З віку 0 до легенди)</title>
-    <link rel="stylesheet" href="{% static 'game/style.css' %}?v=menu5">
+    <link rel="stylesheet" href="{% static 'game/style.css' %}?v=menu7">
     <style>
         @media (max-width: 768px) {
             html, body.terminal-screen {
@@ -55,8 +55,26 @@
     <div class="ascii-bg-layer" aria-hidden="true">
         <ascii-art piece="arctic-icebergs"></ascii-art>
     </div>
-    <script type="module" src="{% static 'game/ascii/ascii.js' %}?v=menu6"></script>
-    <script type="module" src="{% static 'game/ascii-bg.js' %}?v=menu6"></script>
+    <script>
+        // Фон не починається з початку на кожному ході: час анімації зберігається між перезавантаженнями.
+        (function () {
+            var KEY = 'aetheria_bg_t';
+            var el = document.querySelector('.ascii-bg-layer ascii-art');
+            if (!el) return;
+            try {
+                var saved = parseFloat(sessionStorage.getItem(KEY));
+                if (isFinite(saved) && saved > 0) el.setAttribute('t0', String(saved));
+            } catch (e) {}
+            var save = function () {
+                if (el._t == null) return;
+                try { sessionStorage.setItem(KEY, String(el._t)); } catch (e) {}
+            };
+            setInterval(save, 500);
+            window.addEventListener('pagehide', save);
+        })();
+    </script>
+    <script type="module" src="{% static 'game/ascii/ascii.js' %}?v=menu7"></script>
+    <script type="module" src="{% static 'game/ascii-bg.js' %}?v=menu7"></script>
 
     <div class="terminal-container">
         <!-- Calciel ASCII Header Bar -->
