@@ -38,24 +38,97 @@ def index_view(request):
     if char_id:
         active_character = Character.objects.filter(id=char_id).first()
 
+    from .plot_generator import WORLD_PRESETS, DIFFICULTIES
     return render(request, 'game/index.html', {
         'active_character': active_character,
         'hall_of_fame': hall_of_fame,
+        'world_presets': WORLD_PRESETS,
+        'difficulties': DIFFICULTIES,
     })
 
 
 def start_game_view(request):
-    """Generates 100% full random fantasy character starting at Age 0."""
+    """Generates run character starting at Age 0 with custom world, seed, and vector plot."""
     if request.method == 'POST':
+        import random
+        from .plot_generator import WORLD_PRESETS, DIFFICULTIES
+
         custom_name = request.POST.get('name', '').strip()
+        world_id = request.POST.get('world_id', 'fantasy').strip()
+        if world_id not in WORLD_PRESETS:
+            world_id = 'fantasy'
+        
+        difficulty = request.POST.get('difficulty', 'normal').strip()
+        if difficulty not in DIFFICULTIES:
+            difficulty = 'normal'
+
+        seed_raw = request.POST.get('seed', '').strip()
+        if not seed_raw:
+            seed_val = random.randint(100000, 999999)
+        else:
+            try:
+                seed_val = int(seed_raw)
+            except ValueError:
+                seed_val = abs(hash(seed_raw)) % 1000000
+
+        # Generate base fantasy character
         character = generate_random_fantasy_character()
 
+        world_info = WORLD_PRESETS[world_id]
         if custom_name:
             character.name = custom_name
-            character.save()
+
+        # Align location with world starting locations
+        starting_locs = world_info.get("locations", ["Невідомий край"])
+        world_rng = random.Random(seed_val)
+        character.current_location = world_rng.choice(starting_locs)
+
+        # Initialize vector plot story state
+        initial_vector = {
+            "chaos_order": 0.0,
+            "light_shadow": 0.0,
+            "aggression_diplomacy": 0.0,
+            "mystery_reason": 0.0
+        }
+
+        # Pick race from chosen world
+        world_races = world_info.get("races", [])
+        if world_races:
+            character.race = world_rng.choice(world_races)
+
+        # Apply difficulty adjustments
+        diff_info = DIFFICULTIES.get(difficulty, {})
+        hp_mult = diff_info.get("hp_mult", 1.0)
+        gold_mult = diff_info.get("gold_mult", 1.0)
+        if difficulty == 'story':
+            hp_mult, gold_mult = 1.3, 1.5
+        elif difficulty == 'hardcore':
+            hp_mult, gold_mult = 0.8, 0.7
+
+        character.max_hp = int(character.max_hp * hp_mult)
+        character.current_hp = character.max_hp
+        character.gold = int(character.gold * gold_mult)
+
+        # Story flags setup
+        if not isinstance(character.story_flags, dict):
+            character.story_flags = {}
+
+        character.story_flags.update({
+            "world_id": world_id,
+            "world_name": world_info["name"],
+            "seed": seed_val,
+            "difficulty": difficulty,
+            "difficulty_name": diff_info.get("name", "Класична сага"),
+            "vector_plot_enabled": True,
+            "plot_vector": initial_vector,
+            "current_act": 1,
+            "completed_acts": [],
+            "story_interlude_mode": False
+        })
+        character.save()
 
         request.session['character_id'] = character.id
-        messages.success(request, f"Ви народилися у світі Етерія як {character.name} раси {character.race} у краю {character.current_location}!")
+        messages.success(request, f"Ви розпочали шлях у світі {world_info['name']} як {character.name} (Зерно: {seed_val})!")
         return redirect('game:play')
 
     return redirect('game:index')

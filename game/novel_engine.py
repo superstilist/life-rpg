@@ -835,6 +835,33 @@ NOVEL_ACTS: Dict[int, Dict[str, Any]] = {
 }
 
 
+
+from .plot_generator import build_vector_plot_act, WORLD_PRESETS
+
+def get_character_act(character, act_id: int) -> Dict[str, Any]:
+    """
+    Повертає динамічно згенерований або класичний Акт для персонажа на основі:
+    - world_preset (світ)
+    - seed (зерно генерації)
+    - plot_vector (координати долі)
+    """
+    story_state = character.get_story_state() if hasattr(character, 'get_story_state') else {}
+    world_id = story_state.get('world_id') or 'fantasy'
+    
+    # Якщо світ не стандартний або ввімкнено динамічний вектор сюжету:
+    if world_id != 'fantasy' or story_state.get('vector_plot_enabled'):
+        seed = int(story_state.get('seed') or character.id or 42)
+        plot_vector = story_state.get('plot_vector') or {
+            'chaos_order': 0.0,
+            'light_shadow': 0.0,
+            'aggression_diplomacy': 0.0,
+            'mystery_reason': 0.0
+        }
+        return build_vector_plot_act(act_id, world_id, seed, plot_vector, character.name)
+    
+    return get_act_by_id(act_id) or NOVEL_ACTS.get(act_id, NOVEL_ACTS[1])
+
+
 def get_act_by_id(act_id: int) -> Optional[Dict[str, Any]]:
     """Повертає структуру Акту за його числовим ID (1..8)."""
     return NOVEL_ACTS.get(act_id)
@@ -1095,23 +1122,27 @@ def get_active_novel_state(character) -> Dict[str, Any]:
         current_phase = 0
     current_phase = max(0, min(current_phase, total_phases))
 
+    phases_list = act_data.get("phases", [])
     revealed_phases = []
     for i in range(min(current_phase + 1, total_phases)):
-        p = get_act_phase(act_id, i)
-        if p:
-            revealed_phases.append(p)
+        if i < len(phases_list):
+            revealed_phases.append(phases_list[i])
 
     is_ready_for_choice = (current_phase >= total_phases)
+    current_phase_obj = phases_list[current_phase] if (not is_ready_for_choice and current_phase < len(phases_list)) else None
+
+    scene_art = act_data.get("ascii_scene") or get_act_ascii_art(act_id)
+    scene_piece = act_data.get("scene_piece") or get_act_animated_piece(act_id)
 
     return {
         "act_id": act_id,
         "act_data": act_data,
-        "scene_ascii_art": get_act_ascii_art(act_id),
-        "scene_piece": get_act_animated_piece(act_id),
+        "scene_ascii_art": scene_art,
+        "scene_piece": scene_piece,
         "current_phase_index": current_phase,
         "total_phases": total_phases,
         "max_phase": total_phases,
-        "current_phase": get_act_phase(act_id, current_phase) if not is_ready_for_choice else None,
+        "current_phase": current_phase_obj,
         "revealed_phases": revealed_phases,
         "is_ready_for_choice": is_ready_for_choice,
         "choices": act_data.get("choices", []) if is_ready_for_choice else [],
@@ -1132,7 +1163,7 @@ def advance_novel_phase(character) -> Dict[str, Any]:
     Зберігає оновлений стан фази безпосередньо в базі даних.
     """
     act_id = getattr(character, 'story_act', 1) or 1
-    act_data = get_act_by_id(act_id) or NOVEL_ACTS[1]
+    act_data = get_character_act(character, act_id) or NOVEL_ACTS[1]
     total_phases = len(act_data.get("phases", []))
 
     current_phase = getattr(character, 'story_phase', 0) or 0
@@ -1154,7 +1185,7 @@ def skip_novel_phases(character) -> Dict[str, Any]:
     Зберігає стан вибору безпосередньо в базі даних.
     """
     act_id = getattr(character, 'story_act', 1) or 1
-    act_data = get_act_by_id(act_id) or NOVEL_ACTS[1]
+    act_data = get_character_act(character, act_id) or NOVEL_ACTS[1]
     total_phases = len(act_data.get("phases", []))
 
     character.story_phase = total_phases
@@ -1177,7 +1208,7 @@ def resolve_novel_choice(character, act_id: int, choice_index_or_id: Any) -> Dic
     -> applies consequences, logs to Chronicle, records flags,
        advances to next Act or sets next story node!
     """
-    act = get_act_by_id(act_id)
+    act = get_character_act(character, act_id)
     if not act:
         return {"success": False, "message": "Невідомий акт новели."}
 
@@ -1244,6 +1275,19 @@ def resolve_novel_choice(character, act_id: int, choice_index_or_id: Any) -> Dic
     if "ending_title" in choice:
         character.story_flags["ending"] = choice["ending_title"]
         story_state["ending"] = choice["ending_title"]
+
+    # Update dynamic vector plot coordinates if present
+    vector_delta = choice.get("vector_delta")
+    if vector_delta and isinstance(vector_delta, dict):
+        cur_vector = story_state.setdefault("plot_vector", {
+            "chaos_order": 0.0,
+            "light_shadow": 0.0,
+            "aggression_diplomacy": 0.0,
+            "mystery_reason": 0.0
+        })
+        for axis, d_val in vector_delta.items():
+            cur_vector[axis] = round(cur_vector.get(axis, 0.0) + float(d_val), 3)
+        character.story_flags["plot_vector"] = cur_vector
 
     completed = story_state.get("completed_acts", [])
     if act_id not in completed:

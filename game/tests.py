@@ -192,3 +192,31 @@ class NovelEngineControlFlowTestCase(TestCase):
         self.assertRedirects(response, reverse('game:play'))
         self.character.refresh_from_db()
         self.assertEqual(self.character.age, 1)
+from django.test import TestCase, Client
+from django.urls import reverse
+from game.models import Character
+
+class RunSetupTestCase(TestCase):
+    def test_run_setup_with_world_and_seed(self):
+        client = Client()
+        post_data = {
+            'name': 'Ворн',
+            'world_id': 'cosmic_scifi',
+            'difficulty': 'story',
+            'seed': '123456'
+        }
+        resp = client.post(reverse('game:start_game'), post_data, follow=True)
+        self.assertEqual(resp.status_code, 200)
+        char = Character.objects.first()
+        self.assertIsNotNone(char)
+        self.assertEqual(char.name, 'Ворн')
+        self.assertEqual(char.story_flags.get('world_id'), 'cosmic_scifi')
+        self.assertEqual(char.story_flags.get('seed'), 123456)
+        self.assertTrue(char.story_flags.get('vector_plot_enabled'))
+        self.assertIn('plot_vector', char.story_flags)
+
+        # Verify play page loads vector-generated act
+        play_resp = client.get(reverse('game:play'))
+        self.assertEqual(play_resp.status_code, 200)
+        content = play_resp.content.decode('utf-8')
+        self.assertIn('Ворн', content)

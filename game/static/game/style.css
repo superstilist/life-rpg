@@ -2925,3 +2925,301 @@ body.page-is-play .terminal-container {
         radial-gradient(ellipse at 50% 30%, rgba(3, 6, 13, 0) 0%, rgba(3, 6, 13, 0.4) 60%, rgba(3, 6, 13, 0.85) 100%),
         linear-gradient(rgba(3, 6, 13, 0.15), rgba(3, 6, 13, 0.5));
 }
+
+/* ==========================================================================
+   Run & World Setup Modal Styling (Clean Minimal Dark Terminal Monospace)
+   ========================================================================== */
+
+.setup-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(2, 4, 8, 0.88);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+}
+
+.setup-modal-window {
+    background: #060b13;
+    border: 1px solid rgba(88, 166, 255, 0.35);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.8), 0 0 24px rgba(56, 139, 253, 0.12);
+    border-radius: 4px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    animation: setupModalFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes setupModalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(12px) scale(0.98);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.setup-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(13, 17, 23, 0.6);
+}
+
+.setup-modal-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: #e6edf3;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.setup-modal-title .title-glyph {
+    color: #58a6ff;
+}
+
+.setup-close-btn {
+    background: transparent;
+    border: none;
+    color: #8b949e;
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 0.25rem;
+    transition: color 0.15s ease;
+}
+
+.setup-close-btn:hover {
+    color: #f85149;
+}
+
+.setup-form {
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.15rem;
+}
+
+.setup-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.setup-label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: #c9d1d9;
+    letter-spacing: 0.08em;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.setup-sublabel {
+    font-size: 0.7rem;
+    color: #8b949e;
+    font-weight: 400;
+}
+
+.setup-input-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.setup-input {
+    flex: 1;
+    background: #0d1117;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #f0f6fc;
+    padding: 0.65rem 0.85rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    border-radius: 3px;
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.setup-input:focus {
+    border-color: #58a6ff;
+    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.2);
+}
+
+.setup-btn-aux {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #c9d1d9;
+    padding: 0 0.85rem;
+    font-family: inherit;
+    font-size: 0.78rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    white-space: nowrap;
+}
+
+.setup-btn-aux:hover {
+    background: rgba(88, 166, 255, 0.12);
+    border-color: #58a6ff;
+    color: #ffffff;
+}
+
+.world-presets-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+}
+
+@media (max-width: 600px) {
+    .world-presets-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.world-preset-card {
+    background: #0d1117;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    padding: 0.75rem 0.85rem;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    user-select: none;
+}
+
+.world-preset-card:hover {
+    border-color: rgba(88, 166, 255, 0.5);
+    background: rgba(13, 17, 23, 0.85);
+}
+
+.world-preset-card.active {
+    border-color: #58a6ff;
+    background: rgba(56, 139, 253, 0.08);
+    box-shadow: 0 0 12px rgba(56, 139, 253, 0.2);
+}
+
+.card-header-line {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-theme-tag {
+    font-size: 0.68rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #58a6ff;
+    font-weight: 600;
+}
+
+.card-title {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #f0f6fc;
+}
+
+.world-preset-card.active .card-title {
+    color: #79c0ff;
+}
+
+.card-desc {
+    font-size: 0.72rem;
+    color: #8b949e;
+    line-height: 1.35;
+}
+
+.setup-two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+@media (max-width: 600px) {
+    .setup-two-col {
+        grid-template-columns: 1fr;
+    }
+}
+
+.setup-select {
+    background: #0d1117;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    color: #f0f6fc;
+    padding: 0.65rem 0.85rem;
+    font-family: inherit;
+    font-size: 0.82rem;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.setup-select:focus {
+    border-color: #58a6ff;
+}
+
+.setup-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    margin-top: 0.25rem;
+}
+
+.setup-btn-cancel {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #8b949e;
+    padding: 0.65rem 1.1rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.setup-btn-cancel:hover {
+    color: #f0f6fc;
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.setup-btn-submit {
+    background: #1f6feb;
+    border: 1px solid #388bfd;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 0.65rem 1.35rem;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.15s ease;
+}
+
+.setup-btn-submit:hover {
+    background: #388bfd;
+    box-shadow: 0 0 16px rgba(56, 139, 253, 0.4);
+}

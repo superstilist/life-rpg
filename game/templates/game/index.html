@@ -1,4 +1,4 @@
-{% extends 'game/base.html' %}
+﻿{% extends 'game/base.html' %}
 
 {% block content %}
 <div class="menu-screen">
@@ -9,16 +9,13 @@
 ██         ██    ██      ██      ██       ██ ██
 ███████    ██    ███████ ██      ██      ██  ██</pre>
 
-    <p class="menu-tagline">Народитись. Вибрати. Стати легендою — або тінню.</p>
+    <p class="menu-tagline">Народитися. Вибрати. Стати легендою — або тінню.</p>
 
     <nav class="menu-actions" aria-label="Головне меню">
-        <form method="POST" action="{% url 'game:start_game' %}" class="menu-form" id="play-form">
-            {% csrf_token %}
-            <button type="submit" class="menu-btn menu-btn-primary" id="btn-play-start">
-                <span class="menu-btn-label">▶ грати</span>
-                <span class="menu-btn-sub">почати нове сходження з віку 0</span>
-            </button>
-        </form>
+        <button type="button" class="menu-btn menu-btn-primary" id="btn-open-setup" onclick="openRunSetupModal()">
+            <span class="menu-btn-label">▶ грати</span>
+            <span class="menu-btn-sub">налаштувати нове сходження</span>
+        </button>
 
         {% if active_character %}
             <a href="{% url 'game:play' %}" class="menu-btn">
@@ -40,4 +37,140 @@
 
     <p class="menu-hint">один шлях — одна сесія · Етерія пам'ятає кожного</p>
 </div>
+
+<!-- Модальне вікно налаштування забігу / Світу (Run & World Setup Modal) -->
+<div id="run-setup-modal" class="setup-modal-overlay" aria-hidden="true" style="display: none;">
+    <div class="setup-modal-window" role="dialog" aria-modal="true" aria-labelledby="setup-title">
+        <div class="setup-modal-header">
+            <div class="setup-modal-title" id="setup-title">
+                <span class="title-glyph">◈</span> НАЛАШТУВАННЯ СХОДЖЕННЯ
+            </div>
+            <button type="button" class="setup-close-btn" onclick="closeRunSetupModal()" aria-label="Закрити">&times;</button>
+        </div>
+
+        <form method="POST" action="{% url 'game:start_game' %}" class="setup-form" id="run-setup-form">
+            {% csrf_token %}
+
+            <!-- Поле 1: Ім'я героя -->
+            <div class="setup-field-group">
+                <label for="char-name-input" class="setup-label">
+                    <span>ІМ'Я ГЕРОЯ</span>
+                    <span class="setup-sublabel">(залиште порожнім для випадкового)</span>
+                </label>
+                <div class="setup-input-row">
+                    <input type="text" id="char-name-input" name="name" maxlength="32" placeholder="Наприклад: Альдрін, Еларіс, Ворн..." class="setup-input">
+                    <button type="button" class="setup-btn-aux" onclick="randomizeHeroName()">🎲 випадкове</button>
+                </div>
+            </div>
+
+            <!-- Поле 2: Вибір світу / Сетингу -->
+            <div class="setup-field-group">
+                <label class="setup-label">
+                    <span>СВІТ САГИ</span>
+                    <span class="setup-sublabel">(динамічний векторний сюжет під сетинг)</span>
+                </label>
+                <input type="hidden" name="world_id" id="selected-world-id" value="fantasy">
+                <div class="world-presets-grid">
+                    {% for w_id, w in world_presets.items %}
+                    <div class="world-preset-card {% if w_id == 'fantasy' %}active{% endif %}" data-world="{{ w_id }}" onclick="selectWorldPreset('{{ w_id }}')">
+                        <div class="card-header-line">
+                            <span class="card-theme-tag">{{ w.theme }}</span>
+                        </div>
+                        <div class="card-title">{{ w.name }}</div>
+                        <div class="card-desc">{{ w.desc }}</div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Поле 3: Зерно Долі (Seed) та Складність -->
+            <div class="setup-two-col">
+                <div class="setup-field-group">
+                    <label for="seed-input" class="setup-label">
+                        <span>ЗЕРНО ДОЛІ (SEED)</span>
+                    </label>
+                    <div class="setup-input-row">
+                        <input type="text" id="seed-input" name="seed" placeholder="Випадкове зерно..." class="setup-input">
+                        <button type="button" class="setup-btn-aux" onclick="randomizeSeed()">🎲 seed</button>
+                    </div>
+                </div>
+
+                <div class="setup-field-group">
+                    <label class="setup-label">
+                        <span>СКЛАДНІСТЬ</span>
+                    </label>
+                    <select name="difficulty" class="setup-select">
+                        {% for diff_id, diff in difficulties.items %}
+                        <option value="{{ diff_id }}" {% if diff_id == 'normal' %}selected{% endif %}>
+                            {{ diff.label }} ({{ diff.desc }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+
+            <!-- Нижня панель дій -->
+            <div class="setup-modal-actions">
+                <button type="button" class="setup-btn-cancel" onclick="closeRunSetupModal()">[СКАСУВАТИ]</button>
+                <button type="submit" class="setup-btn-submit">
+                    <span>▶ РОЗПОЧАТИ СХОДЖЕННЯ</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const RANDOM_HERO_NAMES = [
+        "Альдрін", "Еларіс", "Ворн", "Тарік", "Каелім", "Зефір", "Морвен",
+        "Бранн", "Ліра", "Фіннеас", "Сіллея", "Корвус", "Оріон", "Дрейк"
+    ];
+
+    function openRunSetupModal() {
+        const modal = document.getElementById('run-setup-modal');
+        if (modal) {
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            if (!document.getElementById('seed-input').value) {
+                randomizeSeed();
+            }
+        }
+    }
+
+    function closeRunSetupModal() {
+        const modal = document.getElementById('run-setup-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    function selectWorldPreset(worldId) {
+        document.getElementById('selected-world-id').value = worldId;
+        document.querySelectorAll('.world-preset-card').forEach(card => {
+            if (card.dataset.world === worldId) {
+                card.classList.add('active');
+            } else {
+                card.classList.remove('active');
+            }
+        });
+    }
+
+    function randomizeHeroName() {
+        const idx = Math.floor(Math.random() * RANDOM_HERO_NAMES.length);
+        document.getElementById('char-name-input').value = RANDOM_HERO_NAMES[idx];
+    }
+
+    function randomizeSeed() {
+        const seedVal = Math.floor(100000 + Math.random() * 900000);
+        document.getElementById('seed-input').value = seedVal;
+    }
+
+    // Закриття по Esc
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeRunSetupModal();
+        }
+    });
+</script>
 {% endblock %}
