@@ -1,0 +1,43 @@
+{% extends 'game/base.html' %}
+
+{% block content %}
+<div class="menu-screen">
+    <pre class="menu-logo" aria-label="Етерія">███████ █████████ ███████ ██████  ██      ██████
+██         ██    ██      ██  ██  ██      ██  ██
+█████      ██    █████   ██████  ██      ██████
+██         ██    ██      ██      ██        ████
+██         ██    ██      ██      ██       ██ ██
+███████    ██    ███████ ██      ██      ██  ██</pre>
+
+    <p class="menu-tagline">Народитись. Вибрати. Стати легендою — або тінню.</p>
+
+    <nav class="menu-actions" aria-label="Головне меню">
+        <form method="POST" action="{% url 'game:start_game' %}" class="menu-form">
+            {% csrf_token %}
+            <button type="submit" class="menu-btn menu-btn-primary">
+                <span class="menu-btn-label">▶ грати</span>
+                <span class="menu-btn-sub">почати нове сходження</span>
+            </button>
+        </form>
+
+        {% if active_character %}
+            <a href="{% url 'game:play' %}" class="menu-btn">
+                <span class="menu-btn-label">⟳ продовжити</span>
+                <span class="menu-btn-sub">{{ active_character.name }} · {{ active_character.age }} р. · {{ active_character.race }}</span>
+            </a>
+        {% else %}
+            <button type="button" class="menu-btn" disabled>
+                <span class="menu-btn-label">⟳ продовжити</span>
+                <span class="menu-btn-sub">немає активного життя</span>
+            </button>
+        {% endif %}
+
+        <a href="{% url 'game:graveyard' %}" class="menu-btn">
+            <span class="menu-btn-label">⚰ зала слави</span>
+            <span class="menu-btn-sub">зала слави Етерії</span>
+        </a>
+    </nav>
+
+    <p class="menu-hint">{{ hall_of_fame|length }} імен вкарбовано у скрижалі · один шлях — одна сесія</p>
+</div>
+{% endblock %}

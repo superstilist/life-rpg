@@ -1,0 +1,145 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#05080f">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>ЕТЕРІЯ // Хроніки фентезійного життя (З віку 0 до легенди)</title>
+    <link rel="stylesheet" href="{% static 'game/style.css' %}?v=menu5">
+    <style>
+        @media (max-width: 768px) {
+            html, body.terminal-screen {
+                width: 100% !important;
+                height: auto !important;
+                max-height: none !important;
+                overflow-x: hidden !important;
+                overflow-y: auto !important;
+            }
+            .terminal-container, main, .portal-screen-grid, .novel-screen-grid,
+            .portal-left-col, .novel-left-col, .ascii-box, .novel-story-panel {
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            .portal-screen-grid, .novel-screen-grid {
+                grid-template-columns: 1fr !important;
+            }
+            .novel-right-col, .novel-inventory-panel, .novel-chronicle-panel {
+                height: auto !important;
+                max-height: none !important;
+                overflow: visible !important;
+            }
+            .novel-inventory-grid, .novel-chronicle-stream {
+                overflow: visible !important;
+                max-height: none !important;
+            }
+            .header-brand-bar {
+                flex-wrap: wrap !important;
+                gap: 6px !important;
+            }
+            .nav-links-bar {
+                flex-wrap: wrap !important;
+                width: 100% !important;
+            }
+            .desktop-only {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="terminal-screen">
+    <!-- Animated ASCII background (ascii_sr upscaled arctic drift) -->
+    <div class="ascii-bg-layer" aria-hidden="true">
+        <ascii-art piece="arctic-icebergs"></ascii-art>
+    </div>
+    <script type="module" src="{% static 'game/ascii/ascii.js' %}?v=menu6"></script>
+    <script type="module" src="{% static 'game/ascii-bg.js' %}?v=menu6"></script>
+
+    <div class="terminal-container">
+        <!-- Calciel ASCII Header Bar -->
+        <header class="header-brand-bar">
+            <div class="brand-title">
+                <span class="brand-symbol">╔═◈═╗</span>
+                <span class="brand-name">ЕТЕРІЯ</span>
+                <span class="brand-tag desktop-only">[ФЕНТЕЗІ-НОВЕЛА OS]</span>
+            </div>
+            <nav class="nav-links-bar">
+                <a href="{% url 'game:index' %}" class="nav-link {% if request.resolver_match.url_name == 'index' %}active{% endif %}">[🏠 Меню]</a>
+                <a href="{% url 'game:play' %}" class="nav-link {% if request.resolver_match.url_name == 'play' %}active{% endif %}">[⚔️ Гра]</a>
+                <a href="{% url 'game:chronicle' %}" class="nav-link {% if request.resolver_match.url_name == 'chronicle' %}active{% endif %}">[📜 Хроніка]</a>
+                <a href="{% url 'game:graveyard' %}" class="nav-link {% if request.resolver_match.url_name == 'graveyard' %}active{% endif %}">[🏆 Меморіал]</a>
+            </nav>
+        </header>
+
+        <!-- ASCII menu rule (ascii-magic dotted rule) -->
+        <div class="ascii-header-rule desktop-only" aria-hidden="true">{{ ASCII_MENU_ARTS.dotted_rule }}</div>
+
+        <!-- Flash messages / System Notifications -->
+        {% if messages %}
+            <div class="messages-container">
+                {% for message in messages %}
+                    <div class="terminal-msg terminal-msg-{{ message.tags }}">
+                        &gt;&gt; {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <!-- Main View Content -->
+        <main>
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Compact Footer Status Line -->
+        <footer class="footer-status desktop-only">
+            <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                <div>Етерія пам'ятає кожного // хроніка триває</div>
+                <div>Етерія OS // <span class="blink-cursor">█</span></div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Keyboard Hotkeys Script -->
+    <script>
+        document.addEventListener('keydown', function(e) {
+            if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) {
+                return;
+            }
+
+            const key = e.key.toLowerCase();
+
+            // Space or Enter to advance visual novel narrator phase
+            if (e.key === ' ' || e.key === 'Enter') {
+                const advanceBtn = document.getElementById('btn-advance-phase');
+                if (advanceBtn) {
+                    e.preventDefault();
+                    advanceBtn.click();
+                    return;
+                }
+            }
+
+            // Tab to pass narrator phases straight to choices
+            if (e.key === 'Tab') {
+                const passBtn = document.getElementById('btn-pass-phases');
+                if (passBtn) {
+                    e.preventDefault();
+                    passBtn.click();
+                    return;
+                }
+            }
+
+            // Hotkeys 1, 2, 3 for event choices
+            if (['1', '2', '3'].includes(key)) {
+                const choiceBtn = document.querySelector(`.event-choice-btn[data-choice="${key}"]`);
+                if (choiceBtn) {
+                    choiceBtn.click();
+                    return;
+                }
+            }
+        });
+    </script>
+</body>
+</html>

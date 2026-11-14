@@ -1,0 +1,1126 @@
+/* ==========================================================================
+   AETHERIA: FANTASY LIFE NOVEL -- CALCIEL MONOCHROME RETRO ASCII ENGINE
+   Dark Backgrounds, Pure Crisp White ASCII Art, High Contrast, Clean VN UI
+   ========================================================================== */
+
+:root {
+    /* Deep Dark-Fantasy Monochromatic Palette */
+    --bg-dark: #030509;
+    --bg-panel: #090c14;
+    --bg-card: #0e1320;
+    --bg-card-hover: #161e30;
+    --bg-inset: #020306;
+
+    /* Crisp White & Monochrome Borders */
+    --border-subtle: #1e293b;
+    --border-medium: #334155;
+    --border-bright: #64748b;
+    --border-focus: #ffffff;
+
+    /* Crisp White Typographic Hierarchy */
+    --text-pure: #ffffff;
+    --text-primary: #f8fafc;
+    --text-secondary: #e2e8f0;
+    --text-muted: #94a3b8;
+    --text-dim: #64748b;
+
+    /* Trimmed monochrome palette: white ink + one gold accent */
+    --c-accent-white: #ffffff;
+    --c-silver: #cbd5e1;
+    --c-gold: #facc15;
+    --c-ruby: #e2e8f0;
+    --c-cyan: #cbd5e1;
+    --c-emerald: #e2e8f0;
+    --c-amethyst: #cbd5e1;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+html, body.terminal-screen {
+    width: 100vw;
+    height: 100vh;
+    max-height: 100vh;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: 'Fira Code', 'Cascadia Code', 'Consolas', 'Courier New', monospace;
+    font-size: 15px;
+    line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Subtle Retro CRT Scanline Overlay */
+.terminal-screen::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+    background-size: 100% 4px;
+    z-index: 999;
+    pointer-events: none;
+    opacity: 0.12;
+}
+
+/* Full-Screen Master Container */
+.terminal-container {
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    margin: 0;
+    border: none;
+    background-color: transparent;
+    padding: 12px 18px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    z-index: 1;
+}
+
+pre {
+    margin: 0;
+    font-family: inherit;
+    white-space: pre;
+}
+
+/* ==========================================================================
+   1. ASCII HEADER NAVBAR & TOP FRAME
+   ========================================================================== */
+
+.header-brand-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    padding: 8px 16px;
+    margin-bottom: 10px;
+    flex-shrink: 0;
+    gap: 16px;
+    border-radius: 2px;
+}
+
+.brand-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+}
+
+.brand-symbol {
+    color: var(--text-pure);
+    font-size: 1.1rem;
+}
+
+.brand-name {
+    font-size: 1.15rem;
+    letter-spacing: 2px;
+    color: var(--text-pure);
+}
+
+.brand-tag {
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid var(--border-bright);
+    color: var(--text-pure);
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-weight: bold;
+}
+
+.nav-links-bar {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.88rem;
+    font-weight: bold;
+    padding: 4px 10px;
+    border-radius: 2px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    transition: all 0.12s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+    color: var(--text-pure);
+    background: var(--bg-card-hover);
+    border-color: var(--text-pure);
+}
+
+/* System Notifications */
+.messages-container {
+    margin-bottom: 8px;
+    flex-shrink: 0;
+}
+
+.terminal-msg {
+    padding: 8px 14px;
+    border-left: 4px solid var(--text-pure);
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    border-left-width: 4px;
+    color: var(--text-pure);
+    font-size: 0.9rem;
+    border-radius: 2px;
+}
+
+main {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* ==========================================================================
+   2. ASCII BOXES & RETRO FRAMES
+   ========================================================================== */
+
+.ascii-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-subtle);
+    padding: 14px 18px;
+    border-radius: 2px;
+    display: flex;
+    flex-direction: column;
+}
+
+.ascii-box-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+    border-bottom: 1px dashed var(--border-medium);
+    font-size: 0.95rem;
+    font-weight: bold;
+    color: var(--text-pure);
+    letter-spacing: 0.5px;
+}
+
+/* ==========================================================================
+   3. PORTAL (START SCREEN) GRID -- STREAMLINED NOVEL PORTAL
+   ========================================================================== */
+
+.portal-screen-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 16px;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.portal-left-col,
+.portal-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.portal-title-banner {
+    background: #020408;
+    border: 1px solid var(--border-bright);
+    padding: 10px 14px;
+    margin-bottom: 12px;
+    color: var(--text-pure);
+    font-size: 0.82rem;
+    line-height: 1.25;
+    text-align: center;
+    overflow-x: auto;
+}
+
+.portal-hero-intro {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+    margin-bottom: 12px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    padding: 12px 16px;
+    border-radius: 2px;
+}
+
+.ascii-art-castle {
+    font-size: 0.82rem;
+    color: var(--text-pure);
+    line-height: 1.15;
+    background: #020306;
+    padding: 10px 14px;
+    border: 1px solid var(--border-bright);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.active-hero-banner {
+    padding: 14px 16px;
+    border: 1px solid var(--text-pure);
+    background: var(--bg-card);
+    border-radius: 2px;
+    margin-bottom: 12px;
+}
+
+.birth-creator-box {
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    padding: 16px;
+    border-radius: 2px;
+}
+
+.race-badges-row {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin: 10px 0;
+}
+
+.race-pill {
+    font-size: 0.82rem;
+    padding: 3px 8px;
+    background: #05080e;
+    border: 1px solid var(--border-medium);
+    border-radius: 2px;
+    color: var(--text-secondary);
+}
+
+/* ==========================================================================
+   4. VISUAL NOVEL SCREEN GRID & ARTWORK
+   ========================================================================== */
+
+.novel-screen-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 16px;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.novel-left-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.novel-right-col {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+}
+
+/* Header Bar for Active Act */
+.novel-header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    border-left: 4px solid var(--text-pure);
+    padding: 8px 14px;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.novel-chapter-tag {
+    font-size: 0.92rem;
+    font-weight: bold;
+    color: var(--text-pure);
+}
+
+/* Hero HUD Card */
+.novel-hud-card {
+    display: flex;
+    gap: 16px;
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    padding: 10px 14px;
+    align-items: center;
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+.novel-mini-portrait {
+    width: 105px;
+    text-align: center;
+    border-right: 1px dashed var(--border-medium);
+    padding-right: 14px;
+    flex-shrink: 0;
+}
+
+.ascii-portrait {
+    color: var(--text-pure);
+    font-size: 0.82rem;
+    line-height: 1.15;
+    margin: 0 auto;
+}
+
+.novel-hud-stats {
+    flex: 1;
+    min-width: 0;
+}
+
+.novel-vitals-row {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 6px;
+}
+
+.novel-bar-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.86rem;
+}
+
+.novel-bar-label {
+    font-weight: bold;
+    font-size: 0.85rem;
+    color: var(--text-pure);
+}
+
+.ascii-bar-text {
+    color: var(--text-pure);
+    font-family: inherit;
+}
+
+.novel-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.novel-attr-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.attr-chip {
+    font-size: 0.82rem;
+    background: var(--bg-card);
+    border: 1px solid var(--border-medium);
+    padding: 2px 8px;
+    border-radius: 2px;
+    color: var(--text-secondary);
+}
+
+.novel-location-chip {
+    font-size: 0.86rem;
+    color: var(--text-pure);
+    font-weight: bold;
+}
+
+/* Стан героя словами; точні числа — під розкривним рядком */
+.vital-note {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--text-muted);
+}
+
+.hero-state {
+    margin-top: 4px;
+    border-top: 1px dashed var(--border-subtle);
+    padding-top: 6px;
+}
+
+.hero-state > summary {
+    cursor: pointer;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    list-style: none;
+    letter-spacing: 0.02em;
+}
+
+.hero-state > summary::-webkit-details-marker {
+    display: none;
+}
+
+.hero-state > summary::before {
+    content: "▸ ";
+}
+
+.hero-state[open] > summary::before {
+    content: "▾ ";
+}
+
+.hero-state[open] > summary {
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+
+.hero-state-nums {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: 0.78rem;
+    color: var(--text-muted);
+}
+
+/* Crisp White ASCII Scene & Story Panel */
+.novel-story-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-bright);
+    border-left: 4px solid var(--text-pure);
+    padding: 14px 18px;
+    border-radius: 2px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.novel-act-banner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px dashed var(--border-medium);
+    padding-bottom: 8px;
+    margin-bottom: 10px;
+}
+
+.novel-act-title {
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: var(--text-pure);
+    letter-spacing: 1px;
+}
+
+.novel-act-subtitle {
+    font-size: 0.84rem;
+    color: var(--text-muted);
+}
+
+.novel-scene-body {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 12px;
+    flex: 1;
+}
+
+.novel-scene-art-box {
+    background: #020306;
+    border: 1px solid var(--border-bright);
+    padding: 12px 14px;
+    border-radius: 2px;
+    color: var(--text-pure);
+    font-size: 0.8rem;
+    line-height: 1.15;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.novel-story-prose {
+    font-size: 1.02rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    flex: 1;
+}
+
+/* Crisp 2-4 Choice Buttons Variant Layout */
+.novel-choices-box {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border-medium);
+    flex-shrink: 0;
+}
+
+.novel-choice-btn {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    color: var(--text-pure);
+    padding: 10px 14px;
+    font-family: inherit;
+    font-size: 0.94rem;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.12s ease;
+    border-radius: 2px;
+    margin-bottom: 8px;
+}
+
+.novel-choice-btn:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--text-pure);
+    transform: translateX(4px);
+}
+
+/* Вибір як рядок прози, а не пункт меню */
+.novel-prose-choice {
+    display: block;
+    width: 100%;
+    font-family: inherit;
+    font-size: 0.95rem;
+    line-height: 1.55;
+    font-style: italic;
+    color: var(--text-primary);
+    letter-spacing: 0.01em;
+}
+
+.novel-choice-btn:hover .novel-prose-choice {
+    color: var(--text-pure);
+}
+
+.choice-num-badge {
+    background: var(--text-pure);
+    color: #000;
+    font-weight: bold;
+    padding: 2px 8px;
+    font-size: 0.85rem;
+    border-radius: 2px;
+    margin-right: 8px;
+}
+
+.choice-check-pill {
+    font-size: 0.8rem;
+    color: var(--text-pure);
+    border: 1px solid var(--border-bright);
+    padding: 1px 6px;
+    background: #020306;
+    border-radius: 2px;
+}
+
+/* Phase Stepper */
+.novel-phase-stepper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #04060c;
+    border: 1px solid var(--border-medium);
+    padding: 6px 12px;
+    margin-bottom: 10px;
+    border-radius: 2px;
+}
+
+.phase-dots {
+    display: flex;
+    gap: 6px;
+}
+
+.phase-dot {
+    width: 10px;
+    height: 10px;
+    border: 1px solid var(--border-bright);
+    background: #020306;
+    border-radius: 50%;
+}
+
+.phase-dot.done {
+    background: var(--text-pure);
+    border-color: var(--text-pure);
+}
+
+.phase-dot.active {
+    background: var(--text-pure);
+}
+
+.novel-active-phase-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    padding: 14px;
+    border-radius: 2px;
+    margin-bottom: 10px;
+}
+
+.speaker-tag-narrator {
+    color: var(--text-pure);
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 4px;
+}
+
+.speaker-tag-npc {
+    color: var(--c-gold);
+    font-weight: bold;
+    font-size: 0.9rem;
+    margin-bottom: 6px;
+    border-bottom: 1px solid var(--border-subtle);
+    padding-bottom: 4px;
+}
+
+.novel-phase-controls {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.btn-advance-phase {
+    width: 100%;
+    background: var(--text-pure);
+    color: #000;
+    border: none;
+    padding: 8px 14px;
+    font-family: inherit;
+    font-weight: bold;
+    font-size: 0.92rem;
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all 0.12s ease;
+}
+
+.btn-advance-phase:hover {
+    background: #e2e8f0;
+}
+
+.btn-pass-phases {
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    color: var(--text-pure);
+    padding: 8px 14px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+    border-radius: 2px;
+}
+
+/* General Buttons */
+.btn-ascii {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    color: var(--text-pure);
+    padding: 6px 14px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    font-weight: bold;
+    cursor: pointer;
+    text-decoration: none;
+    border-radius: 2px;
+    transition: all 0.12s ease;
+}
+
+.btn-ascii:hover {
+    background: var(--bg-card-hover);
+    border-color: var(--text-pure);
+    color: var(--text-pure);
+}
+
+.btn-highlight {
+    background: var(--text-pure);
+    color: #000;
+    border-color: var(--text-pure);
+}
+
+.btn-highlight:hover {
+    background: #e2e8f0;
+    color: #000;
+}
+
+.btn-danger {
+    border-color: var(--c-ruby);
+    color: var(--c-ruby);
+}
+
+.input-ascii {
+    background: #020306;
+    border: 1px solid var(--border-bright);
+    color: var(--text-pure);
+    padding: 8px 12px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    border-radius: 2px;
+    outline: none;
+}
+
+.input-ascii:focus {
+    border-color: var(--text-pure);
+}
+
+/* Chronicle Stream Right Column */
+.novel-chronicle-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    padding: 12px 16px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    border-radius: 2px;
+}
+
+.novel-chronicle-stream {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.novel-stream-entry {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-left: 3px solid var(--border-bright);
+    padding: 8px 12px;
+    font-size: 0.88rem;
+    border-radius: 2px;
+}
+
+.novel-age-badge {
+    font-size: 0.75rem;
+    color: var(--text-pure);
+    font-weight: bold;
+}
+
+.ascii-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+}
+
+.ascii-table th {
+    background: #05080e;
+    border-bottom: 2px solid var(--border-bright);
+    padding: 8px 10px;
+    text-align: left;
+    color: var(--text-pure);
+}
+
+.ascii-table td {
+    border-bottom: 1px solid var(--border-subtle);
+    padding: 8px 10px;
+}
+
+.ascii-table tr:hover td {
+    background: var(--bg-card-hover);
+}
+
+.footer-status {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    padding: 6px 14px;
+    margin-top: 8px;
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    border-radius: 2px;
+    flex-shrink: 0;
+}
+
+/* ==========================================================================
+   ASCII ART LAYERS & PANELS (ascii-magic / asciiart.eu)
+   ========================================================================== */
+
+/* Fixed animated ASCII background (ascii-magic arctic-icebergs) */
+.ascii-bg-layer {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background: #030509;
+    opacity: 0.5;
+}
+
+.ascii-bg-layer::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 50% 8%, rgba(3, 5, 9, 0) 0%, rgba(3, 5, 9, 0.32) 62%, rgba(3, 5, 9, 0.68) 100%),
+        linear-gradient(rgba(3, 5, 9, 0.1), rgba(3, 5, 9, 0.3));
+}
+
+.ascii-bg-layer ascii-art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    max-width: none;
+    overflow: hidden;
+}
+
+.ascii-bg-pre {
+    margin: 0;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    white-space: pre;
+    font-family: "Cascadia Mono", "JetBrains Mono", Consolas, "DejaVu Sans Mono", monospace;
+    font-size: clamp(3px, 0.4vw, 10px);
+    line-height: 1.0;
+    letter-spacing: 0;
+    color: #cfe8ff;
+    text-shadow: 0 0 5px rgba(120, 200, 255, 0.15);
+    opacity: 0.5;
+    pointer-events: none;
+    user-select: none;
+}
+
+/* ==========================================================================
+   MINIMAL MAIN MENU (3 buttons over the animated background)
+   ========================================================================== */
+
+.menu-screen {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 12px;
+    text-align: center;
+}
+
+.menu-logo {
+    margin: 0;
+    font-size: clamp(0.72rem, 2.1vw, 2rem);
+    line-height: 1.1;
+    letter-spacing: 0;
+    color: var(--text-pure);
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.9);
+    white-space: pre;
+    overflow: hidden;
+    max-width: 100%;
+    user-select: none;
+}
+
+.menu-tagline {
+    margin: 0 0 6px;
+    font-size: clamp(0.78rem, 1.25vw, 1.02rem);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+.menu-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    width: min(460px, 92vw);
+    background: transparent;
+}
+
+.menu-form {
+    margin: 0;
+    display: block;
+    background: transparent;
+}
+
+/* Every menu control is fully transparent: only an outline and ink. */
+.menu-btn {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 15px 20px;
+    font-family: inherit;
+    font-size: 1rem;
+    color: var(--text-pure);
+    text-decoration: none;
+    text-align: center;
+    background: transparent;
+    border: 1px solid var(--border-bright);
+    border-radius: 2px;
+    cursor: pointer;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+    transition: border-color 0.14s ease, transform 0.14s ease;
+}
+
+.menu-btn:hover:not([disabled]),
+.menu-btn:focus-visible {
+    background: transparent;
+    border-color: var(--text-pure);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+.menu-btn-primary {
+    background: transparent;
+    color: var(--text-pure);
+    border: 1px solid var(--text-pure);
+}
+
+.menu-btn-primary .menu-btn-label {
+    font-size: 1.16rem;
+}
+
+.menu-btn-primary:hover {
+    background: transparent;
+    border-color: var(--text-pure);
+}
+
+.menu-btn[disabled] {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.menu-btn-label {
+    font-size: 1.06rem;
+    font-weight: bold;
+    letter-spacing: 0.14em;
+}
+
+.menu-btn-sub {
+    font-size: 0.74rem;
+    letter-spacing: 0.06em;
+    opacity: 0.78;
+}
+
+.menu-hint {
+    margin: 6px 0 0;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    color: var(--text-dim);
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
+}
+
+/* Decorative rule under the header */
+.ascii-header-rule {
+    margin: -4px 0 8px;
+    font-size: 0.82rem;
+    line-height: 1.1;
+    color: var(--text-dim);
+    overflow: hidden;
+    white-space: pre;
+    flex-shrink: 0;
+    opacity: 0.9;
+}
+
+/* Generic ASCII panel art (data table, book, etc.) */
+.ascii-panel-art {
+    background: #020408;
+    border: 1px solid var(--border-subtle);
+    border-radius: 2px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    line-height: 1.15;
+    overflow: hidden;
+    white-space: pre;
+    flex-shrink: 0;
+    opacity: 0.85;
+}
+
+/* Single-slot save note */
+.ascii-save-note {
+    margin-bottom: 14px;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    background: var(--bg-card);
+    border-left: 3px solid var(--c-gold);
+    border-radius: 2px;
+}
+
+/* Inventory panel with item ASCII art */
+.novel-inventory-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-medium);
+    padding: 12px 16px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    max-height: 42%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.novel-inventory-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 8px;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.inventory-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 2px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.inventory-item-art {
+    margin: 0;
+    height: 76px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    font-family: "Cascadia Mono", "JetBrains Mono", Consolas, "DejaVu Sans Mono", monospace;
+    line-height: 1;
+    color: var(--text-pure);
+    overflow: hidden;
+    white-space: pre;
+}
+
+.inventory-item-name {
+    font-size: 0.78rem;
+    font-weight: bold;
+    color: var(--text-pure);
+    line-height: 1.25;
+}
+
+.inventory-item-meta {
+    display: flex;
+    justify-content: space-between;
+    gap: 6px;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.inventory-item-qty {
+    color: var(--c-gold);
+    font-weight: bold;
+}
+
+.inventory-item-bonus {
+    text-align: right;
+}
+
+.inventory-empty {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+    font-size: 0.84rem;
+    padding: 10px;
+}

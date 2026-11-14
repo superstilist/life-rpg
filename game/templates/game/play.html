@@ -1,0 +1,346 @@
+{% extends 'game/base.html' %}
+{% load ascii_tags %}
+
+{% block content %}
+<div class="novel-screen-grid">
+    <!-- ЛІВА КОЛОНКА: Стан героя, Сага новели та Дії -->
+    <div class="novel-left-col">
+        <!-- Верхня плашка розділу новели -->
+        <div class="novel-header-bar">
+            <div class="novel-chapter-tag">
+                📖 {{ character.age }} р. · <strong style="color: var(--text-pure);">{{ character.name }}</strong> <span style="color: var(--text-muted);">({{ character.race }})</span>
+            </div>
+            <div class="novel-hero-summary desktop-only">
+                <span style="color: var(--text-pure);">★ {{ character.hero_title }}</span>
+                {% if character.mentor %}
+                    <span style="color: var(--text-muted); margin-left: 6px; font-size: 0.8rem;">[Наставник: {{ character.mentor }}]</span>
+                {% endif %}
+            </div>
+            <a href="{% url 'game:retire' %}" class="btn-ascii btn-danger" onclick="return confirm('Завершити життєвий шлях, осісти старійшиною та увічнити свій рахунок у Залі Слави?');" style="font-size: 0.78rem; padding: 4px 10px;">
+                [завершити шлях]
+            </a>
+        </div>
+
+        <!-- Компактний HUD героя з білими ASCII-індикаторами -->
+        <div class="novel-hud-card">
+            <!-- Міні-портрет -->
+            <div class="novel-mini-portrait desktop-only">
+                <pre class="ascii-portrait">{{ character.race_ascii_portrait }}</pre>
+                <div style="font-size: 0.72rem; color: var(--text-pure); font-weight: bold; margin-top: 2px;">{{ character.race }}</div>
+            </div>
+
+            <!-- Шкали та характеристики: числа сховані, читаються словами -->
+            <div class="novel-hud-stats">
+                <div class="novel-vitals-row">
+                    <div class="novel-bar-item">
+                        <span class="novel-bar-label">ОЗ</span>
+                        <span class="ascii-bar-text" style="font-weight: bold; font-size: 0.82rem;">{{ character.hp_bar }}</span>
+                        <span class="vital-note">{{ character.hp_state }}</span>
+                    </div>
+
+                    <div class="novel-bar-item">
+                        <span class="novel-bar-label">МАНА</span>
+                        <span class="ascii-bar-text" style="font-weight: bold; font-size: 0.82rem;">{{ character.mana_bar }}</span>
+                        <span class="vital-note">{{ character.mana_state }}</span>
+                    </div>
+
+                    <div style="margin-left: auto;">
+                        <span class="novel-location-chip">📍 {{ character.current_location }}</span>
+                    </div>
+                </div>
+
+                <details class="hero-state">
+                    <summary>стан героя</summary>
+                    <div class="novel-info-row">
+                        <div class="novel-attr-chips">
+                            <span class="attr-chip"><b>СИЛ</b> {{ character.strength }}</span>
+                            <span class="attr-chip"><b>СПР</b> {{ character.agility }}</span>
+                            <span class="attr-chip"><b>ІНТ</b> {{ character.intelligence }}</span>
+                            <span class="attr-chip"><b>ХАР</b> {{ character.charisma }}</span>
+                            <span class="attr-chip"><b>УДАЧ</b> {{ character.luck }}</span>
+                        </div>
+                        <div class="hero-state-nums">
+                            <span>тіло {{ character.hp }} / {{ character.max_hp }}</span>
+                            <span>ефір {{ character.mana }} / {{ character.max_mana }}</span>
+                            <span>гаманець {{ character.gold }} g</span>
+                            <span>слава {{ character.reputation }}</span>
+                        </div>
+                    </div>
+                </details>
+            </div>
+        </div>
+
+        <!-- ГОЛОВНА СЦЕНА ВІЗУАЛЬНОЇ НОВЕЛИ: З БІЛИМ ASCII СЦЕНІЧНИМ АРТОМ -->
+        {% if active_event %}
+            <!-- Сюжетна зустріч -->
+            <div class="novel-story-panel">
+                <div class="novel-act-banner">
+                    <div>
+                        <div class="novel-act-title">
+                            {{ active_event.title }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="novel-story-prose">
+                    {% if active_event.opener %}
+                        <p style="font-style: italic; color: var(--text-muted); margin-bottom: 10px;">{{ active_event.opener }}</p>
+                    {% endif %}
+                    {{ active_event.description }}
+                </div>
+
+                <!-- Вибір як думка оповідача, а не пункт меню -->
+                <div class="novel-choices-box">
+                    {% for choice in active_event.choices %}
+                        <form method="POST" action="{% url 'game:action' %}" style="display: block; margin-bottom: 6px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="resolve_event">
+                            <input type="hidden" name="event_id" value="{{ active_event.id }}">
+                            <input type="hidden" name="choice_index" value="{{ forloop.counter0 }}">
+                            <button type="submit" class="novel-choice-btn event-choice-btn" data-choice="{{ forloop.counter }}">
+                                <span class="novel-prose-choice">{{ choice.prose }}</span>
+                            </button>
+                        </form>
+                    {% endfor %}
+                    <form method="POST" action="{% url 'game:action' %}" style="display: inline-block; margin-top: 4px;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="dismiss_event">
+                        <button type="submit" class="btn-ascii" style="font-size: 0.78rem; padding: 3px 8px;">
+                            [пройти повз]
+                        </button>
+                    </form>
+                </div>
+            </div>
+        {% elif novel_state.is_interlude %}
+            <!-- 4. Наративна інтерлюдія -->
+            <div class="novel-story-panel">
+                <div class="novel-act-banner">
+                    <div>
+                        <div class="novel-act-title">
+                            інтерлюдія
+                        </div>
+                        <div class="novel-act-subtitle">
+                            {{ novel_state.interlude_subtitle }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="novel-story-prose" style="margin-bottom: 12px;">
+                    {{ novel_state.interlude_intro }}
+                </div>
+
+                <div style="font-size: 0.88rem; font-style: italic; color: var(--text-secondary); margin-bottom: 8px;">
+                    Що лишиться від цього року?
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    {% for opt in novel_state.interlude_options %}
+                        <form method="POST" action="{% url 'game:novel_interlude' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="interlude_type" value="{{ opt.type }}">
+                            <button type="submit" class="novel-choice-btn">
+                                <span class="novel-prose-choice">{{ opt.prose }}</span>
+                            </button>
+                        </form>
+                    {% endfor %}
+                </div>
+            </div>
+
+        {% elif novel_state.is_story_completed %}
+            <!-- Фінал новели -->
+            <div class="novel-story-panel">
+                <div class="novel-act-banner">
+                    <div>
+                        <div class="novel-act-title">
+                            {{ novel_state.ending }}
+                        </div>
+                    </div>
+                    <div style="font-size: 0.88rem; color: var(--text-pure); font-weight: bold;">
+                        {{ character.score }} очок слави
+                    </div>
+                </div>
+
+                <div class="novel-story-prose" style="margin: 14px 0; line-height: 1.65;">
+                    <p>Ваша хроніка вписана у скрижалі Етерії. Шлях пройдено до кінця.</p>
+                </div>
+
+                <div style="display: flex; gap: 10px; margin-top: 12px;">
+                    <a href="{% url 'game:chronicle' %}" class="btn-ascii">[хроніка]</a>
+                    <a href="{% url 'game:graveyard' %}" class="btn-ascii btn-highlight">[зала слави]</a>
+                </div>
+            </div>
+
+        {% else %}
+            <!-- ГОЛОВНА ВІЗУАЛЬНА НОВЕЛА: 8 АКТІВ З ЧІТКИМ БІЛИМ ASCII СЦЕНІЧНИМ АРТОМ -->
+            <div class="novel-story-panel">
+                <!-- Банер поточного Акту -->
+                <div class="novel-act-banner">
+                    <div>
+                        <div class="novel-act-title">
+                            Акт {{ novel_state.act_id }} · {{ novel_state.act_data.title }}
+                        </div>
+                        <div class="novel-act-subtitle">
+                            {{ novel_state.act_data.subtitle }}
+                        </div>
+                    </div>
+                    <div style="font-size: 0.8rem; color: var(--text-pure);">
+                        📍 {{ novel_state.act_data.location }}
+                    </div>
+                </div>
+
+                <!-- Фазовий степер -->
+                <div class="novel-phase-stepper">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div class="phase-dots">
+                            {% for p in novel_state.act_data.phases %}
+                                <div class="phase-dot {% if forloop.counter0 < novel_state.current_phase_index %}done{% elif forloop.counter0 == novel_state.current_phase_index and not novel_state.is_ready_for_choice %}active{% endif %}"></div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div style="font-size: 0.76rem; color: var(--text-muted);">
+                        {% if not novel_state.is_ready_for_choice %}
+                            <span>Enter — далі · Tab — до вибору</span>
+                        {% else %}
+                            <span style="color: var(--text-pure);">1 · 2 · 3 — вибір</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- ОСНОВНА СЦЕНА НОВЕЛИ: БІЛИЙ ASCII СЦЕНІЧНИЙ АРТ + ТЕКСТ ОПОВІДІ -->
+                <div class="novel-scene-body">
+                    {% if novel_state.scene_ascii_art %}
+                        <pre class="novel-scene-art-box desktop-only">{{ novel_state.scene_ascii_art }}</pre>
+                    {% endif %}
+
+                    <div style="flex: 1; display: flex; flex-direction: column;">
+                        {% if not novel_state.is_ready_for_choice and novel_state.current_phase %}
+                            <div class="novel-active-phase-card" style="flex: 1;">
+                                {% if novel_state.current_phase.speaker == 'Оповідач' %}
+                                    <div class="speaker-tag-narrator">оповідач</div>
+                                {% else %}
+                                    <div class="speaker-tag-npc">{{ novel_state.current_phase.speaker }}</div>
+                                {% endif %}
+
+                                <div class="novel-story-prose">
+                                    {{ novel_state.current_phase.text }}
+                                </div>
+
+                                <div class="novel-phase-controls">
+                                    <form method="POST" action="{% url 'game:novel_advance' %}" style="flex: 1;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="advance_novel_phase">
+                                        <button type="submit" class="btn-advance-phase action-btn-advance" id="btn-advance-phase">
+                                            ▶ далі
+                                        </button>
+                                    </form>
+
+                                    <form method="POST" action="{% url 'game:novel_skip' %}">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="pass_novel_phases">
+                                        <button type="submit" class="btn-pass-phases action-btn-pass" id="btn-pass-phases">
+                                            ↷
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- 2-4 ПРОСТІ ВАРІАНТИ ВИБОРУ ДЛЯ НОВЕЛИ -->
+                {% if novel_state.is_ready_for_choice %}
+                    <div class="novel-choices-box">
+                        <div style="font-size: 0.95rem; font-weight: bold; color: var(--text-pure); margin-bottom: 10px; display: flex; justify-content: space-between;">
+                            <span>Вибір</span>
+                            <span style="font-size: 0.75rem; color: var(--text-muted);">[1, 2, 3]</span>
+                        </div>
+
+                        {% for choice in novel_state.choices %}
+                            <form method="POST" action="{% url 'game:novel_choice' %}" style="display: block;">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="resolve_novel_choice">
+                                <input type="hidden" name="act_id" value="{{ novel_state.act_id }}">
+                                <input type="hidden" name="choice_id" value="{{ choice.id }}">
+                                <button type="submit" class="novel-choice-btn event-choice-btn" data-choice="{{ forloop.counter }}">
+                                    <span class="novel-prose-choice">{{ choice.prose }}</span>
+                                </button>
+                            </form>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+    </div>
+
+    <!-- ПРАВА КОЛОНКА: Інвентар реліквій та повна жива хроніка життя -->
+    <div class="novel-right-col">
+        <!-- Інвентар реліквій з ASCII-артами предметів -->
+        <div class="novel-inventory-panel">
+            <div class="ascii-box-header" style="margin-bottom: 6px;">
+                <div>
+                    <span>інвентар</span>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); margin-left: 6px;">
+                        ({{ relics|length }})
+                    </span>
+                </div>
+            </div>
+
+            <div class="novel-inventory-grid">
+                {% for inv in relics %}
+                    <div class="inventory-card" title="{{ inv.item.description }}">
+                        <pre class="inventory-item-art" style="font-size: {{ inv.item|item_ascii_font }}px;">{{ inv.item|item_ascii }}</pre>
+                        <div class="inventory-item-name">{{ inv.item.name }}</div>
+                        <div class="inventory-item-meta">
+                            <span class="inventory-item-qty">×{{ inv.quantity }}</span>
+                            <span class="inventory-item-bonus">{{ inv.item.bonus_display }}</span>
+                        </div>
+                        {% if inv.item.item_type == 'POTION' %}
+                            <form method="POST" action="{% url 'game:action' %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="action" value="use_item">
+                                <input type="hidden" name="inventory_id" value="{{ inv.id }}">
+                                <button type="submit" class="btn-ascii" style="font-size: 0.72rem; padding: 2px 6px; width: 100%;">
+                                    [випити]
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <p class="inventory-empty">порожньо</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="novel-chronicle-panel desktop-only">
+            <div class="ascii-box-header" style="margin-bottom: 6px;">
+                <div>
+                    <span>хроніка</span>
+                    <span style="font-size: 0.72rem; color: var(--text-muted); margin-left: 6px;">
+                        ({{ chronicle_logs|length }})
+                    </span>
+                </div>
+                <a href="{% url 'game:chronicle' %}" class="btn-ascii" style="font-size: 0.75rem; padding: 2px 8px;">[↗]</a>
+            </div>
+
+            <!-- Внутрішній скрол хроніки -->
+            <div class="novel-chronicle-stream">
+                {% for log in chronicle_logs %}
+                    <div class="novel-stream-entry">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
+                            <span class="novel-age-badge">{{ log.age }} р.</span>
+                            <strong style="color: var(--text-pure); font-size: 0.85rem;">{{ log.title|prose_title }}</strong>
+                        </div>
+                        <div style="color: var(--text-secondary); font-size: 0.84rem;">
+                            {{ log.text|prose }}
+                        </div>
+                    </div>
+                {% empty %}
+                    <p style="color: var(--text-muted); padding: 10px; font-size: 0.8rem;">—</p>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

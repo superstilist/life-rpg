@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Django local data
+db.sqlite3
+db.sqlite3-journal
+*.log
+local_settings.py
+
+# Tooling / agent artifacts
+.pytest_cache/
+.claude/
+.codex-attachments/
+
+# OS
+.DS_Store
+Thumbs.db
