@@ -18,6 +18,7 @@ from .npc_sandbox import (
     process_npc_kill,
     npc_speak,
 )
+from .dialogue_engine import open_dialogue, get_dialogue_node, resolve_dialogue_option
 from .event_system import (
     seed_default_items,
     generate_random_fantasy_character,
@@ -413,6 +414,51 @@ def interlude_action_view(request):
         messages.warning(request, res.get('message', 'Не вдалося виконати інтерлюдію.'))
 
     return redirect('game:play')
+
+
+def dialogue_open_view(request):
+    """Відкриває діалог з NPC (POST з форми [ поговорити ])."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    character, db_alias = get_character_from_session(request)
+    if not character:
+        return redirect('game:index')
+
+    npc = WorldNPC.objects.using(db_alias).filter(id=request.POST.get('npc_id')).first()
+    if not npc:
+        return redirect('game:play')
+
+    data = open_dialogue(character, npc)
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return JsonResponse(data)
+    # Не-AJAX: зберігаємо в сесії та повертаємось на сторінку
+    request.session['active_dialogue'] = data
+    return redirect('game:play')
+
+
+def dialogue_node_view(request):
+    """AJAX: повертає вузол діалогу або застосовує вибір."""
+    if request.method != 'POST':
+        return HttpResponseNotAllowed(['POST'])
+
+    character, db_alias = get_character_from_session(request)
+    if not character:
+        return JsonResponse({'error': 'no_character'}, status=403)
+
+    npc = WorldNPC.objects.using(db_alias).filter(id=request.POST.get('npc_id')).first()
+    if not npc:
+        return JsonResponse({'error': 'no_npc'}, status=404)
+
+    node_key = request.POST.get('node_key') or 'greet'
+    option_index = request.POST.get('option_index')
+
+    if option_index is not None and str(option_index).isdigit():
+        data = resolve_dialogue_option(character, npc, node_key, int(option_index))
+    else:
+        data = get_dialogue_node(character, npc, node_key) if node_key != 'greet' else open_dialogue(character, npc)
+
+    return JsonResponse(data)
 
 
 def npc_action_view(request):

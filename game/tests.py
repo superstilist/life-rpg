@@ -293,7 +293,53 @@ class NPCSandboxTestCase(TestCase):
         self.assertEqual(resp.status_code, 200)
         html = resp.content.decode('utf-8')
         self.assertIn('Жителі краю', html)
-        self.assertIn('вбити', html)
+        self.assertIn('поговорити', html)
+        self.assertIn('dialogue-overlay', html)
+
+    def test_dialogue_opens_through_modal(self):
+        """Діалог відкривається лише через модальне вікно, без прямих кнопок."""
+        from game.npc_sandbox import spawn_npcs_for_location
+        npc = spawn_npcs_for_location('fantasy', self.char.current_location, self.char, count=1)[0]
+
+        resp = self.client.get(reverse('game:play'))
+        html = resp.content.decode('utf-8')
+        # Картка NPC містить лише кнопку діалогу, жодних прямих дій
+        self.assertNotIn('вбити', html.lower())
+        self.assertNotIn('здатен', html.lower())
+
+    def test_dialogue_node_endpoint(self):
+        from game.npc_sandbox import spawn_npcs_for_location
+        npc = spawn_npcs_for_location('fantasy', self.char.current_location, self.char, count=1)[0]
+        before = npc.respect
+
+        resp = self.client.post(reverse('game:dialogue_node'), {
+            'npc_id': npc.id,
+            'node_key': 'gesture_bow',
+            'option_index': 0,
+        })
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertIn('options', data)
+        npc.refresh_from_db()
+        self.assertNotEqual(npc.respect, before)
+
+    def test_dialogue_option_requires_relationship(self):
+        """Опція, що потребує вірного друга, недоступна для стороннього."""
+        from game.npc_sandbox import spawn_npcs_for_location
+        npc = spawn_npcs_for_location('fantasy', self.char.current_location, self.char, count=1)[0]
+        npc.relationship = 'stranger'
+        npc.save(using='fantasy')
+
+        resp = self.client.post(reverse('game:dialogue_node'), {
+            'npc_id': npc.id,
+            'node_key': 'romance_confess',
+            'option_index': 0,
+        })
+        self.assertEqual(resp.status_code, 200)
+        data = json.loads(resp.content)
+        self.assertIn('options', data)
+        self.assertTrue(any(o.get('locked') for o in data['options']))
+        self.assertEqual(data['notice'], 'Потрібна симпатія 20+')
 
     def test_gesture_updates_respect(self):
         from game.npc_sandbox import spawn_npcs_for_location

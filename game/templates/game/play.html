@@ -274,7 +274,7 @@
                 {% endif %}
             </div>
 
-            <!-- 2. Жителі локації: процедурна пісочниця NPC -->
+            <!-- 2. Жителі локації: лише діалог -->
             <div class="sidebar-box npc-sandbox-box frameless-box">
                 <div class="box-header">
                     <span class="box-title">👥 Жителі краю</span>
@@ -283,98 +283,28 @@
 
                 <div class="npc-stream">
                     {% for npc in location_npcs %}
-                        <details class="npc-card" data-npc="{{ npc.id }}">
-                            <summary class="npc-card-head">
+                        <div class="npc-card" data-npc="{{ npc.id }}">
+                            <div class="npc-card-head">
                                 <span class="npc-name">{{ npc.name }}</span>
                                 <span class="npc-role">{{ npc.role_title }}</span>
                                 <span class="npc-rel rel-{{ npc.relationship }}">{{ npc.get_relationship_display }}</span>
-                            </summary>
+                            </div>
                             <div class="npc-card-body">
-                                <div class="npc-meta-row">
-                                    <span class="npc-temper">Темперамент: {{ npc.temperament }}</span>
-                                    <span class="npc-age">{{ npc.age }} р.</span>
-                                </div>
                                 {% if npc.appearance %}
                                     <div class="npc-appearance">{{ npc.appearance|join:" · " }}</div>
                                 {% endif %}
-                                <div class="npc-quote">“{{ npc.quote|default_if_none:'' }}</div>
                                 <div class="npc-stats-row">
                                     <span title="Повага">П {{ npc.respect }}</span>
                                     <span title="Симпатія">С {{ npc.affection }}</span>
                                     <span title="Страх">Т {{ npc.fear }}</span>
                                 </div>
-
-                                <div class="npc-actions-grid">
-                                    <!-- Жести -->
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="gesture">
-                                        <input type="hidden" name="kind" value="bow">
-                                        <button type="submit" class="npc-btn gesture-btn" title="Шанобливий уклін">[уклін]</button>
-                                    </form>
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="gesture">
-                                        <input type="hidden" name="kind" value="handshake">
-                                        <button type="submit" class="npc-btn gesture-btn" title="Міцне рукостискання">[рука]</button>
-                                    </form>
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="gesture">
-                                        <input type="hidden" name="kind" value="threaten">
-                                        <button type="submit" class="npc-btn gesture-btn" title="Покласти руку на ефес">[загроза]</button>
-                                    </form>
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="gesture">
-                                        <input type="hidden" name="kind" value="insult">
-                                        <button type="submit" class="npc-btn gesture-btn" title="Зневажливий жест">[зневага]</button>
-                                    </form>
-
-                                    <!-- Романтика -->
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="romance">
-                                        <input type="hidden" name="kind" value="compliment">
-                                        <button type="submit" class="npc-btn romance-btn" title="Комплімент">[комплімент]</button>
-                                    </form>
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="romance">
-                                        <input type="hidden" name="kind" value="dine_together">
-                                        <button type="submit" class="npc-btn romance-btn" title="Спільна вечеря">[вечеря]</button>
-                                    </form>
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="romance">
-                                        <input type="hidden" name="kind" value="confess_love">
-                                        <button type="submit" class="npc-btn romance-btn" title="Зізнання в коханні">[зізнання]</button>
-                                    </form>
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="romance">
-                                        <input type="hidden" name="kind" value="propose_marriage">
-                                        <button type="submit" class="npc-btn romance-btn" title="Запропонувати шлюб">[шлюб]</button>
-                                    </form>
-
-                                    <!-- Вбивство -->
-                                    <form method="POST" action="{% url 'game:npc_action' %}" class="npc-action-form npc-kill-form" onsubmit="return confirm('Ви впевнені, що хочете вбити {{ npc.name }}? Це назавжди змінить вашу легенду.');">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="npc_id" value="{{ npc.id }}">
-                                        <input type="hidden" name="action_type" value="kill">
-                                        <button type="submit" class="npc-btn kill-btn" title="Атакувати й вбити">[вбити]</button>
-                                    </form>
-                                </div>
+                                <form method="POST" action="{% url 'game:dialogue_open' %}" class="npc-talk-form">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="npc_id" value="{{ npc.id }}">
+                                    <button type="submit" class="npc-talk-btn">[ поговорити ]</button>
+                                </form>
                             </div>
-                        </details>
+                        </div>
                     {% empty %}
                         <div class="empty-stream-msg">У цій локації немає жителів. Мандрівні душі з'являться з часом.</div>
                     {% endfor %}
@@ -437,4 +367,121 @@
         </aside>
     </div>
 </div>
+
+    <!-- Діалогове вікно з NPC: усі взаємодії відбуваються лише тут -->
+    <div id="npc-dialogue-modal" class="dialogue-overlay" aria-hidden="true" style="display: none;">
+        <div class="dialogue-window" role="dialog" aria-modal="true" aria-labelledby="dlg-title">
+            <div class="dialogue-header">
+                <div class="dialogue-who">
+                    <span class="dialogue-avatar" id="dlg-avatar">☺</span>
+                    <div class="dialogue-who-text">
+                        <div class="dialogue-name" id="dlg-name">—</div>
+                        <div class="dialogue-role" id="dlg-role">—</div>
+                    </div>
+                </div>
+                <button type="button" class="dialogue-close" id="dlg-close" aria-label="Закрити">&times;</button>
+            </div>
+
+            <div class="dialogue-log" id="dlg-log"></div>
+
+            <div class="dialogue-options" id="dlg-options"></div>
+
+            <div class="dialogue-footer">
+                <span class="dialogue-hint">Діалог — єдиний спосіб вплинути на цю душу.</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function () {
+        const modal = document.getElementById('npc-dialogue-modal');
+        const logEl = document.getElementById('dlg-log');
+        const optsEl = document.getElementById('dlg-options');
+        const nameEl = document.getElementById('dlg-name');
+        const roleEl = document.getElementById('dlg-role');
+        const avatarEl = document.getElementById('dlg-avatar');
+        let currentNpcId = null;
+
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/[&<>"]/g, c => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'
+            }[c]));
+        }
+
+        function openDialogue(npcId) {
+            currentNpcId = npcId;
+            modal.style.display = 'flex';
+            modal.setAttribute('aria-hidden', 'false');
+            fetchDialogue();
+        }
+
+        function closeDialogue() {
+            modal.style.display = 'none';
+            modal.setAttribute('aria-hidden', 'true');
+            currentNpcId = null;
+        }
+
+        async function fetchDialogue(payload) {
+            const body = new URLSearchParams(payload || { npc_id: currentNpcId });
+            const resp = await fetch("{% url 'game:dialogue_node' %}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': '{{ csrf_token }}',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                },
+                body: body.toString()
+            });
+            const data = await resp.json();
+            render(data);
+        }
+
+        function render(data) {
+            nameEl.textContent = data.npc_name || '—';
+            roleEl.textContent = (data.npc_role || '') + ' · ' + (data.npc_rel || '');
+            avatarEl.textContent = data.npc_gender === 'F' ? '♀' : '♂';
+
+            logEl.innerHTML = '';
+            (data.transcript || []).forEach(line => {
+                const div = document.createElement('div');
+                div.className = 'dlg-line ' + (line.who === 'hero' ? 'dlg-hero' : 'dlg-npc');
+                div.innerHTML = '<span class="dlg-speaker">' + esc(line.speaker) + '</span><span class="dlg-text">' + esc(line.text) + '</span>';
+                logEl.appendChild(div);
+            });
+            logEl.scrollTop = logEl.scrollHeight;
+
+            optsEl.innerHTML = '';
+            (data.options || []).forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'dlg-option dlg-opt-' + (opt.tone || 'neutral');
+                btn.innerHTML = '<span class="dlg-opt-text">' + esc(opt.text) + '</span>' +
+                    (opt.effects ? '<span class="dlg-opt-fx">' + esc(opt.effects) + '</span>' : '');
+                btn.disabled = !!opt.locked;
+                if (opt.locked && opt.lock_reason) {
+                    btn.title = opt.lock_reason;
+                    btn.innerHTML += '<span class="dlg-opt-lock">🔒 ' + esc(opt.lock_reason) + '</span>';
+                }
+                btn.addEventListener('click', () => {
+                    if (btn.disabled) return;
+                    fetchDialogue({ npc_id: currentNpcId, node_key: data.node_key, option_index: idx });
+                });
+                optsEl.appendChild(btn);
+            });
+        }
+
+        document.getElementById('dlg-close').addEventListener('click', closeDialogue);
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeDialogue(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDialogue(); });
+
+        // Кнопки [ поговорити ] у панелі жителів
+        document.querySelectorAll('.npc-talk-form').forEach(form => {
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const npcId = form.querySelector('input[name="npc_id"]').value;
+                openDialogue(npcId);
+            });
+        });
+    })();
+    </script>
 {% endblock %}
