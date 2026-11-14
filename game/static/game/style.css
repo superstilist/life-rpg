@@ -2901,3 +2901,27 @@ body.page-is-play .terminal-container {
     color: #fff !important;
     box-shadow: 0 0 8px rgba(246, 199, 68, 0.35) !important;
 }
+/* Background layer with 4K dots GIF */
+.ascii-bg-layer.bg-gif-mode {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background-color: #030509;
+    background-image: url('arctic-icebergs-4k-dots.gif');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    opacity: 0.42;
+    filter: contrast(1.15) brightness(0.95);
+}
+
+.ascii-bg-layer.bg-gif-mode::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 50% 30%, rgba(3, 6, 13, 0) 0%, rgba(3, 6, 13, 0.4) 60%, rgba(3, 6, 13, 0.85) 100%),
+        linear-gradient(rgba(3, 6, 13, 0.15), rgba(3, 6, 13, 0.5));
+}

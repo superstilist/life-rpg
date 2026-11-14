@@ -17,29 +17,9 @@
     <!-- Глобальна Шахівниця Переходу (Checkerboard Transition Grid) -->
     <div id="chess-transition-grid" class="chess-grid-overlay" aria-hidden="true"></div>
 
-    <!-- Animated ASCII background (ONLY ON MAIN MENU) -->
+    <!-- High-Definition 4K Dots Animated Background (arctic-icebergs-4k-dots.gif) -->
     {% if request.resolver_match.url_name == 'index' %}
-        <div class="ascii-bg-layer" aria-hidden="true">
-            <ascii-art piece="arctic-icebergs"></ascii-art>
-        </div>
-        <script>
-            (function () {
-                var KEY = 'aetheria_bg_t';
-                var el = document.querySelector('.ascii-bg-layer ascii-art');
-                if (!el) return;
-                try {
-                    var saved = parseFloat(sessionStorage.getItem(KEY));
-                    if (isFinite(saved) && saved > 0) el.setAttribute('t0', String(saved));
-                } catch (e) {}
-                var save = function () {
-                    if (el._t == null) return;
-                    try { sessionStorage.setItem(KEY, String(el._t)); } catch (e) {}
-                };
-                setInterval(save, 500);
-                window.addEventListener('pagehide', save);
-            })();
-        </script>
-        <script type="module" src="{% static 'game/ascii-bg.js' %}?v=full_banner_clean_1"></script>
+        <div class="ascii-bg-layer bg-gif-mode" aria-hidden="true"></div>
     {% endif %}
 
     <!-- ASCII Web Component Script (loaded for both menu and in-game scene banners) -->
